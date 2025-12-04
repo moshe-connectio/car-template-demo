@@ -1,6 +1,7 @@
 'use client';
 
-import Link from 'next/link';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Vehicle } from '@/lib/vehiclesRepository';
 import { formatPrice, formatKilometers } from '@/lib/utils';
 import VehicleImageGallery from './VehicleImageGallery';
@@ -10,6 +11,16 @@ interface VehicleCardProps {
 }
 
 export function VehicleCard({ vehicle }: VehicleCardProps) {
+  const router = useRouter();
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+
+  const handleContentClick = () => {
+    router.push(`/vehicles/${vehicle.slug}`);
+  };
+
+  const handleImageChange = (index: number) => {
+    setSelectedImageIndex(index);
+  };
   return (
     <div 
       className="group flex flex-col h-full bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 relative"
@@ -23,11 +34,11 @@ export function VehicleCard({ vehicle }: VehicleCardProps) {
 
       {/* Image Gallery Section - Fixed Height */}
       <div className="p-4 bg-gray-50 flex items-center justify-center overflow-hidden min-h-56">
-        <VehicleImageGallery images={vehicle.images} vehicleTitle={vehicle.title} />
+        <VehicleImageGallery images={vehicle.images} vehicleTitle={vehicle.title} selectedIndex={selectedImageIndex} disableThumbnailClick={false} onImageChange={handleImageChange} />
       </div>
 
       {/* Clickable Content Section - flex-1 to grow */}
-      <div className="p-5 flex flex-col flex-1 cursor-pointer">
+      <div className="p-5 flex flex-col flex-1 cursor-pointer" onClick={handleContentClick}>
         {/* New Status Badge */}
         {vehicle.km !== null && vehicle.km === 0 && (
           <div className="mb-3 inline-block bg-success text-white text-xs font-semibold px-3 py-1 rounded-full shadow-lg w-fit">
@@ -93,9 +104,6 @@ export function VehicleCard({ vehicle }: VehicleCardProps) {
           </div>
         </div>
       </div>
-
-      {/* Link wrapper for navigation - positioned absolutely */}
-      <Link href={`/vehicles/${vehicle.slug}`} className="absolute inset-0" />
     </div>
   );
 }

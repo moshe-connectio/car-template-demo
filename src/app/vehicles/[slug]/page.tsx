@@ -8,6 +8,7 @@ import { formatPrice, formatKilometers } from '@/lib/utils';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { Container } from '@/components/layout/Container';
+import VehicleImageGallery from '@/components/vehicles/VehicleImageGallery';
 
 interface VehicleDetailPageProps {
   params: Promise<{
@@ -133,7 +134,7 @@ export default function VehicleDetailPage({ params }: VehicleDetailPageProps) {
         {/* Main Content */}
         <div className="py-8">
           <Container>
-            {/* Sold Ribbon */}
+            {/* Sold Ribbon - Only show if NOT published */}
             {!vehicle.is_published && (
               <div className="relative mb-8">
                 <div className="absolute inset-0 bg-red-500 opacity-10 rounded-lg"></div>
@@ -149,64 +150,16 @@ export default function VehicleDetailPage({ params }: VehicleDetailPageProps) {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               {/* Left Column - Images */}
               <div className="lg:col-span-2">
-                {/* Main Image */}
-                <div className="relative mb-6 bg-gray-100 rounded-xl overflow-hidden aspect-video">
-                  {mainImageUrl ? (
-                    <Image
-                      src={mainImageUrl}
-                      alt={vehicle.title}
-                      fill
-                      className="object-cover"
-                      priority
+                <div className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100">
+                  <div className="p-6">
+                    <VehicleImageGallery 
+                      images={vehicle.images} 
+                      vehicleTitle={vehicle.title}
+                      selectedIndex={selectedImageIndex}
+                      onImageChange={setSelectedImageIndex}
                     />
-                  ) : (
-                    <div className="absolute inset-0 flex items-center justify-center bg-gray-200">
-                      <svg
-                        className="w-16 h-16 text-gray-400"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                        />
-                      </svg>
-                    </div>
-                  )}
-                </div>
-
-                {/* Thumbnails Gallery */}
-                {sortedImages.length > 0 && (
-                  <div className="space-y-4">
-                    <h3 className="font-semibold text-gray-900">גלריית תמונות</h3>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                      {sortedImages.map((image, index) => (
-                        <button
-                          key={image.id}
-                          onClick={() => setSelectedImageIndex(index)}
-                          className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-all ${
-                            selectedImageIndex === index
-                              ? 'border-primary shadow-lg'
-                              : 'border-gray-200 hover:border-gray-300'
-                          }`}
-                        >
-                          <Image
-                            src={image.image_url}
-                            alt={`תמונה ${index + 1}`}
-                            fill
-                            className="object-cover"
-                          />
-                          <div className="absolute bottom-1 right-1 bg-black/60 text-white text-xs px-2 py-1 rounded">
-                            {index + 1}/{sortedImages.length}
-                          </div>
-                        </button>
-                      ))}
-                    </div>
                   </div>
-                )}
+                </div>
               </div>
 
               {/* Right Column - Details */}

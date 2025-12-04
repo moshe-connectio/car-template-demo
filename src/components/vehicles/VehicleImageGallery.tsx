@@ -1,19 +1,30 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { VehicleImage } from '@/lib/vehiclesRepository';
 
 interface VehicleImageGalleryProps {
   images: VehicleImage[] | null;
   vehicleTitle: string;
+  disableThumbnailClick?: boolean;
+  onImageChange?: (index: number) => void;
+  selectedIndex?: number;
 }
 
 export default function VehicleImageGallery({
   images,
   vehicleTitle,
+  disableThumbnailClick = false,
+  onImageChange,
+  selectedIndex = 0,
 }: VehicleImageGalleryProps) {
-  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(selectedIndex);
+
+  // Sync internal state with prop when prop changes
+  useEffect(() => {
+    setSelectedImageIndex(selectedIndex);
+  }, [selectedIndex]);
 
   // Sort images by position
   const sortedImages = images
@@ -76,7 +87,13 @@ export default function VehicleImageGallery({
           {sortedImages.map((image, index) => (
             <button
               key={image.id}
-              onClick={() => setSelectedImageIndex(index)}
+              onClick={(e) => {
+                e.stopPropagation();
+                if (!disableThumbnailClick) {
+                  setSelectedImageIndex(index);
+                  onImageChange?.(index);
+                }
+              }}
               className={`relative w-14 h-14 rounded overflow-hidden shrink-0 transition-all duration-200 border-2 ${
                 selectedImageIndex === index
                   ? 'border-primary ring-2 ring-primary/50'
