@@ -416,3 +416,40 @@ export async function reorderVehicleImages(
     throw err;
   }
 }
+
+/**
+ * Delete vehicles that have been marked as sold (is_published = false)
+ * and were updated more than 1 day ago
+ */
+export async function deleteSoldVehicles(): Promise<number> {
+  try {
+    console.log('🗑️ Cleaning up sold vehicles older than 1 day...');
+    const client = createServerSupabaseClient();
+
+    // Calculate the date from 1 day ago
+    const oneDayAgo = new Date();
+    oneDayAgo.setDate(oneDayAgo.getDate() - 1);
+    const oneDayAgoISO = oneDayAgo.toISOString();
+
+    console.log(`🔍 Looking for vehicles marked as sold before ${oneDayAgoISO}`);
+
+    // Delete vehicles that are not published and were updated more than 1 day ago
+    const response = await client
+      .from('vehicles')
+      .delete()
+      .eq('is_published', false)
+      .lt('updated_at', oneDayAgoISO);
+
+    if (response.error) {
+      console.error('❌ Error deleting sold vehicles:', response.error);
+      throw new Error(`Failed to delete sold vehicles: ${response.error.message}`);
+    }
+
+    const deletedCount = response.count ?? 0;
+    console.log(`✅ Successfully deleted ${deletedCount} sold vehicles`);
+    return deletedCount;
+  } catch (err) {
+    console.error('❌ Unexpected error in deleteSoldVehicles:', err);
+    throw err;
+  }
+}

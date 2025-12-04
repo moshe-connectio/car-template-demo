@@ -1,4 +1,4 @@
-import { getPublishedVehicles, Vehicle } from '@/lib/vehiclesRepository';
+import { getPublishedVehicles, deleteSoldVehicles, Vehicle } from '@/lib/vehiclesRepository';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { Container } from '@/components/layout/Container';
@@ -11,6 +11,10 @@ export default async function VehiclesPage() {
   let error: string | null = null;
 
   try {
+    // Clean up sold vehicles older than 1 day
+    await deleteSoldVehicles();
+    
+    // Fetch published vehicles
     vehicles = await getPublishedVehicles();
   } catch (err) {
     console.error('Failed to load vehicles:', err);

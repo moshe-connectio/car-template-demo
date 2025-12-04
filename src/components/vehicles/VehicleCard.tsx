@@ -12,8 +12,15 @@ export function VehicleCard({ vehicle }: VehicleCardProps) {
       className="group block bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100"
     >
       {/* Image Gallery Section */}
-      <div className="p-4 bg-gray-50">
+      <div className="p-4 bg-gray-50 relative">
         <VehicleImageGallery images={vehicle.images} vehicleTitle={vehicle.title} />
+        
+        {/* Sold Ribbon */}
+        {!vehicle.is_published && (
+          <div className="absolute top-8 right-6 transform rotate-45 bg-blue-600 text-white font-bold py-2 px-8 shadow-lg text-sm">
+            נמכר
+          </div>
+        )}
       </div>
 
       {/* Content Section */}
