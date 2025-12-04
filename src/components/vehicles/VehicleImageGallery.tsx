@@ -20,12 +20,25 @@ export default function VehicleImageGallery({
     ? [...images].sort((a, b) => a.position - b.position)
     : [];
 
-  // If no images, show placeholder
+  // If no images, show placeholder grid
   if (sortedImages.length === 0) {
     return (
-      <div className="w-full bg-gray-100 aspect-square rounded-lg flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-gray-500">No images available</p>
+      <div className="w-full">
+        {/* Main Placeholder */}
+        <div className="w-full h-52 bg-gray-200 rounded-lg overflow-hidden mb-2 flex items-center justify-center">
+          <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+        </div>
+
+        {/* Placeholder Thumbnails */}
+        <div className="flex gap-1 overflow-x-auto">
+          {[1, 2, 3].map((index) => (
+            <div
+              key={index}
+              className="w-14 h-14 bg-gray-200 rounded shrink-0"
+            />
+          ))}
         </div>
       </div>
     );
@@ -37,7 +50,7 @@ export default function VehicleImageGallery({
   return (
     <div className="w-full">
       {/* Main Image Display */}
-      <div className="relative w-full aspect-square bg-gray-100 rounded-lg overflow-hidden mb-4">
+      <div className="relative w-full h-52 bg-gray-100 rounded-lg overflow-hidden mb-2 p-3">
         <Image
           src={displayedImage.image_url}
           alt={displayedImage.alt_text || vehicleTitle}
@@ -50,23 +63,23 @@ export default function VehicleImageGallery({
             console.warn(`Failed to load image: ${displayedImage.image_url}`);
           }}
         />
-        {/* Position Badge */}
-        <div className="absolute top-3 left-3 bg-black/70 text-white px-3 py-1 rounded-full text-xs font-semibold">
+        {/* Image Counter */}
+        <div className="absolute top-2 left-2 bg-black/70 text-white text-xs font-semibold px-2 py-1 rounded">
           {selectedImageIndex + 1} / {sortedImages.length}
         </div>
       </div>
 
       {/* Thumbnail Navigation */}
       {sortedImages.length > 1 && (
-        <div className="flex gap-2 overflow-x-auto pb-2">
+        <div className="flex gap-1 overflow-x-auto">
           {/* All images as thumbnails */}
           {sortedImages.map((image, index) => (
             <button
               key={image.id}
               onClick={() => setSelectedImageIndex(index)}
-              className={`relative w-20 h-20 rounded-lg overflow-hidden shrink-0 transition-all duration-200 border-2 ${
+              className={`relative w-14 h-14 rounded overflow-hidden shrink-0 transition-all duration-200 border-2 ${
                 selectedImageIndex === index
-                  ? 'border-primary-600 ring-2 ring-primary-400'
+                  ? 'border-primary ring-2 ring-primary/50'
                   : 'border-gray-300 hover:border-gray-400'
               }`}
               aria-label={`View image ${index + 1}${image.alt_text ? ': ' + image.alt_text : ''}`}
@@ -76,20 +89,15 @@ export default function VehicleImageGallery({
                 alt={`Thumbnail ${image.alt_text || `image ${index + 1}`}`}
                 fill
                 className="object-cover"
-                sizes="80px"
+                sizes="56px"
               />
-              <span className="absolute bottom-1 right-1 bg-black/70 text-white text-xs rounded px-1">
+              <span className="absolute bottom-0.5 right-0.5 bg-black/70 text-white text-xs rounded px-0.5">
                 {index + 1}
               </span>
             </button>
           ))}
         </div>
       )}
-
-      {/* Image Counter */}
-      <div className="mt-3 text-sm text-gray-600">
-        Showing {sortedImages.length} image{sortedImages.length !== 1 ? 's' : ''}
-      </div>
     </div>
   );
 }

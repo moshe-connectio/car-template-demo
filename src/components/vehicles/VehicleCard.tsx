@@ -1,3 +1,5 @@
+'use client';
+
 import Link from 'next/link';
 import { Vehicle } from '@/lib/vehiclesRepository';
 import { formatPrice, formatKilometers } from '@/lib/utils';
@@ -9,10 +11,9 @@ interface VehicleCardProps {
 
 export function VehicleCard({ vehicle }: VehicleCardProps) {
   return (
-    <Link href={`/vehicles/${vehicle.slug}`}>
-      <div 
-        className="group block bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 relative cursor-pointer"
-      >
+    <div 
+      className="group flex flex-col h-full bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 relative"
+    >
       {/* Sold Ribbon */}
       {!vehicle.is_published && (
         <div className="absolute top-4 -right-8 transform rotate-45 bg-blue-600 text-white font-bold py-1.5 px-12 shadow-lg text-xs z-10">
@@ -20,16 +21,16 @@ export function VehicleCard({ vehicle }: VehicleCardProps) {
         </div>
       )}
 
-      {/* Image Gallery Section */}
-      <div className="p-4 bg-gray-50">
+      {/* Image Gallery Section - Fixed Height */}
+      <div className="p-4 bg-gray-50 flex items-center justify-center overflow-hidden min-h-56">
         <VehicleImageGallery images={vehicle.images} vehicleTitle={vehicle.title} />
       </div>
 
-      {/* Content Section */}
-      <div className="p-5">
+      {/* Clickable Content Section - flex-1 to grow */}
+      <div className="p-5 flex flex-col flex-1 cursor-pointer">
         {/* New Status Badge */}
         {vehicle.km !== null && vehicle.km === 0 && (
-          <div className="mb-3 inline-block bg-success text-white text-xs font-semibold px-3 py-1 rounded-full shadow-lg">
+          <div className="mb-3 inline-block bg-success text-white text-xs font-semibold px-3 py-1 rounded-full shadow-lg w-fit">
             חדש מהאפס
           </div>
         )}
@@ -74,14 +75,10 @@ export function VehicleCard({ vehicle }: VehicleCardProps) {
           )}
         </div>
 
-        {/* Description */}
-        {vehicle.short_description && (
-          <p className="text-sm text-gray-600 mb-4 line-clamp-2">
-            {vehicle.short_description}
-          </p>
-        )}
+        {/* Spacer - pushes price to bottom */}
+        <div className="flex-1"></div>
 
-        {/* Price */}
+        {/* Price - always at bottom */}
         <div className="pt-4 border-t border-gray-100">
           <div className="flex items-center justify-between">
             <span className="text-2xl font-bold text-success">
@@ -96,7 +93,9 @@ export function VehicleCard({ vehicle }: VehicleCardProps) {
           </div>
         </div>
       </div>
-      </div>
-    </Link>
+
+      {/* Link wrapper for navigation - positioned absolutely */}
+      <Link href={`/vehicles/${vehicle.slug}`} className="absolute inset-0" />
+    </div>
   );
 }
