@@ -45,6 +45,7 @@ Content-Type: application/json
     "km": 0,
     "gear_type": "Automatic",
     "fuel_type": "Petrol",
+    "categories": ["סדאן", "משפחתית"],
     "main_image_url": "https://example.com/toyota-camry.jpg",
     "short_description": "Beautiful Toyota Camry with low mileage",
     "external_id": "INV-2024-001",
@@ -56,13 +57,14 @@ Content-Type: application/json
   },
   "images": [
     {
-      "image_url": "https://images.example.com/car-1.jpg",
+      "image_url": "https://drive.google.com/uc?id=1SAMPLE_FILE_ID&export=view",
       "position": 1,
       "alt_text": "Front view"
     },
     {
-      "image_url": "https://images.example.com/car-2.jpg",
+      "image_url": "https://drive.google.com/uc?id=2SAMPLE_FILE_ID&export=view",
       "position": 2,
+```
       "alt_text": "Side view"
     }
   ]
@@ -91,11 +93,29 @@ Content-Type: application/json
 | `data.km` | number | Kilometers/mileage |
 | `data.gear_type` | string | Transmission type (e.g., "Automatic", "Manual") |
 | `data.fuel_type` | string | Fuel type (e.g., "Petrol", "Diesel", "Electric") |
+| `data.categories` | string[] | Array of vehicle categories (see list below) |
 | `data.main_image_url` | string | URL of the main/primary image |
 | `data.short_description` | string | Brief description of the vehicle |
 | `data.external_id` | string | External identifier from your system |
 | `data.raw_data` | object | Any additional JSON data |
 | `images` | array | Array of image objects (max 10 images, positions 1-10) |
+
+**Available Categories:**
+- SUV
+- סדאן (Sedan)
+- האצ'בק (Hatchback)
+- מיני ואן (Minivan)
+- קופה (Coupe)
+- קרוסאובר (Crossover)
+- טנדר (Pickup)
+- ספורט (Sports)
+- חשמלי (Electric)
+- היברידי (Hybrid)
+- 4x4
+- יוקרה (Luxury)
+- משפחתית (Family)
+- מנהלים (Executive)
+- 8 מושבים (8 Seaters)
 
 #### Image Objects
 
@@ -281,8 +301,21 @@ The **`crmid` is what makes each vehicle unique**.
 ### ⚠️ Image URLs Must Be HTTPS
 
 - ✅ Supported: `https://images.example.com/car.jpg`
+- ✅ Supported: `https://drive.google.com/uc?id=FILE_ID&export=view` (Google Drive)
+- ✅ Supported: `https://drive.google.com/uc?id=FILE_ID&export=download` (Google Drive direct download)
 - ❌ Not supported: `data:image/jpeg;base64,...` (base64 images)
 - ❌ Not supported: `http://...` (non-HTTPS)
+
+**Note:** Google Drive URLs are automatically converted to direct download format. You can use either the view or download format - the system will handle it correctly.
+
+### 📸 Image Storage
+
+Images are automatically downloaded from the provided URLs and stored in **Supabase Storage**:
+- **Bucket:** `vehicle-images`
+- **Folder Structure:** `vehicles/{slug}-{idSuffix}/` (e.g., `vehicles/honda-civic-2024-097dc71b/`)
+- **Filename Format:** `{position}-{timestamp}.{ext}` (e.g., `1-1704865200000.jpg`)
+- **Access:** Public URLs are automatically generated and stored in the database
+- **Automatic:** No additional configuration needed - images are downloaded and uploaded automatically
 
 ### ✅ Safe to Resend
 

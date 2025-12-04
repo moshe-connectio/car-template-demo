@@ -10,11 +10,11 @@ A reusable website template for car dealerships and other automotive businesses 
 
 ## 🏗️ Tech Stack
 
-- **Frontend:** Next.js 14+ (App Router), TypeScript, Tailwind CSS
-- **Backend:** Node.js (Next.js server actions)
-- **Database:** Supabase (PostgreSQL)
-- **Deployment:** Vercel
-- **CRM Integration:** Zoho CRM (planned)
+- **Frontend:** Next.js 16.0.7 (App Router, Turbopack), TypeScript, Tailwind CSS v4
+- **Backend:** Node.js (Next.js API routes, webhooks)
+- **Database:** Supabase (PostgreSQL) with Storage
+- **Deployment:** Vercel (ISR 60s)
+- **CRM Integration:** Zoho CRM (webhooks)
 
 ---
 
@@ -67,6 +67,7 @@ public/
 | updated_at | timestamptz | default: now() | Last update timestamp |
 | is_published | boolean | default: true | Publication status |
 | external_id | text | nullable | External system ID |
+| crmid | text | nullable, unique | CRM ID for webhook upsert |
 | slug | text | unique, not null | URL-friendly identifier |
 | title | text | not null | Vehicle title/name |
 | brand | text | not null | Vehicle brand (e.g., Toyota) |
@@ -76,11 +77,27 @@ public/
 | km | integer | nullable | Mileage in kilometers |
 | gear_type | text | nullable | Transmission type (e.g., Manual, Automatic) |
 | fuel_type | text | nullable | Fuel type (e.g., Petrol, Diesel, Electric) |
+| categories | text[] | default: '{}' | Array of vehicle categories |
 | main_image_url | text | nullable | Primary vehicle image URL |
 | short_description | text | nullable | Brief vehicle description |
 | raw_data | jsonb | nullable | Additional metadata in JSON format |
 
-**Status:** 3 example vehicles already inserted.
+### `public.vehicle_images` table
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| id | uuid | PK, default: gen_random_uuid() | Unique identifier |
+| vehicle_id | uuid | FK to vehicles(id) | Reference to vehicle |
+| image_url | text | not null | Image URL (from Supabase Storage) |
+| position | integer | 1-10, not null | Image order (1 = primary) |
+| alt_text | text | nullable | Image description |
+| uploaded_at | timestamptz | default: now() | Upload timestamp |
+
+### `vehicle-images` Supabase Storage bucket
+
+- **Type:** Public bucket
+- **Path structure:** `vehicles/{slug}-{idSuffix}/{position}-{timestamp}.{ext}`
+- **Example:** `vehicles/honda-civic-2024-097dc71b/1-1764867249536.jpg`
 
 ---
 
@@ -253,4 +270,111 @@ npm run build
 
 ---
 
-**Last Updated:** December 4, 2025 - Added crmid field and upsert functionality for Zoho CRM integration
+## 📝 Session Summary (December 4, 2025)
+
+### ✅ Completed Features
+
+1. **SEO-Friendly Vehicle URLs**
+   - Format: `{name}-{year}-{idSuffix}` (e.g., tesla-model-3-2024-a1b2c3d4)
+   - Utilities: `generateVehicleSlug()`, `extractIdFromSlug()`
+   - Enhanced detail pages with 600px image height
+
+2. **Image Management System**
+   - Webhook downloads images from Google Drive
+   - Uploads to Supabase Storage: `vehicles/{slug}-{idSuffix}/`
+   - File structure: `{position}-{timestamp}.{ext}`
+   - Fixed Next.js image config for `*.supabase.co` domain
+   - Handles errors gracefully (partial image processing)
+
+3. **Multi-Category Support**
+   - Vehicle type: `categories: string[]` (15 possible categories)
+   - Categories: SUV, סדאן, האצ'בק, מיני ואן, קופה, קרוסאובר, טנדר, ספורט, חשמלי, היברידי, 4x4, יוקרה, משפחתית, מנהלים, 8 מושבים
+   - Database migration: `ALTER TABLE vehicles ADD COLUMN categories TEXT[] DEFAULT '{}'`
+   - Helper: `getUniqueCategories()` - flattens and deduplicates arrays
+
+4. **Advanced Filtering System**
+   - VehicleFilters component with:
+     - Brand filter (dropdown, single select)
+     - Categories filter (combobox with search, multi-select)
+     - Text search across 5 fields
+   - FilterableVehicleGrid with memoized filtering
+   - Filtering logic: ANY category match, brand exact match, search includes
+   - Count display: "מציג X מתוך Y רכבים"
+
+5. **Sold Vehicle Management**
+   - `is_published` field controls vehicle visibility
+   - Automatically hidden from listings when not published
+   - Cleanup: deletes unpublished vehicles older than 2 days
+
+### 🔧 Key Code Changes
+
+**Webhook Processing Pipeline** (`src/app/api/webhooks/vehicles/route.ts`):
+```typescript
+// Download from Google Drive
+const downloadImage = (imageUrl) => {
+  // Extracts file ID, converts to direct download format
+  // Returns Buffer with validation
+}
+
+// Upload to Supabase Storage
+const uploadImageToSupabase = (buffer, slug, id, position, filename) => {
+  // Creates: vehicles/{slug}-{idSuffix}/
+  // Returns public Supabase URL
+}
+
+// Orchestrator function
+const processAndUploadImages = async (vehicleId, slug, images) => {
+  // Sequential processing with error handling per image
+  // Webhook succeeds even if some images fail
+}
+```
+
+**URL Utilities** (`src/lib/utils.ts`):
+```typescript
+// SEO slug generation
+generateVehicleSlug(title, year, id) // "tesla-model-3-2024-a1b2c3d4"
+
+// ID extraction from slug
+extractIdFromSlug(slug) // Returns 8-char ID with UUID validation
+```
+
+**Type Updates** (`src/lib/vehiclesRepository.ts`):
+```typescript
+interface Vehicle {
+  // ... other fields
+  categories: string[] // Changed from single string to array
+  is_published: boolean // For sold status
+  image_urls?: string[] // From Supabase
+}
+```
+
+### ✅ Test Results
+
+**Webhook Test (Successful)**:
+- Downloaded 561KB image from Google Drive
+- Uploaded to Supabase Storage successfully
+- Image accessible via public URL
+- Stored reference in database
+- No Next.js image config errors
+
+**Filtering Test (Successful)**:
+- Multi-select categories working correctly
+- Brand filter functioning properly
+- Text search across vehicle fields
+- Count display accurate
+- Active filters display with removal
+
+### 📦 Current Project Status
+
+**Production Ready**: ✅
+- All features implemented and tested
+- Code compiles without errors
+- All commits pushed to main branch
+- ISR (60s revalidation) configured on Vercel
+- Supabase images configured and accessible
+
+**Remaining Tasks**: None blocking
+
+---
+
+**Last Updated:** December 4, 2025 - Completed filtering, image upload, multi-category support, and SEO URLs
