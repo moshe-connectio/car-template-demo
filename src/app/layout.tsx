@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+// @ts-ignore - CSS import
 import "./globals.css";
 import { APP_CONFIG } from "@/lib/constants";
 
