@@ -1,5 +1,6 @@
 import { Vehicle } from '@/lib/vehiclesRepository';
 import { formatPrice, formatKilometers } from '@/lib/utils';
+import VehicleImageGallery from './VehicleImageGallery';
 
 interface VehicleCardProps {
   vehicle: Vehicle;
@@ -10,42 +11,20 @@ export function VehicleCard({ vehicle }: VehicleCardProps) {
     <div 
       className="group block bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100"
     >
-      {/* Image Section */}
-      <div className="relative h-48 bg-gray-200 overflow-hidden">
-        {vehicle.main_image_url ? (
-          <img
-            src={vehicle.main_image_url}
-            alt={vehicle.title}
-            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center bg-linear-to-br from-gray-100 to-gray-200">
-            <svg 
-              className="w-20 h-20 text-gray-400" 
-              fill="none" 
-              stroke="currentColor" 
-              viewBox="0 0 24 24"
-            >
-              <path 
-                strokeLinecap="round" 
-                strokeLinejoin="round" 
-                strokeWidth={1.5} 
-                d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" 
-              />
-            </svg>
-          </div>
-        )}
-        
-        {/* Status Badge */}
-        {vehicle.km !== null && vehicle.km === 0 && (
-          <div className="absolute top-3 left-3 bg-success text-white text-xs font-semibold px-3 py-1 rounded-full shadow-lg">
-            חדש מהאפס
-          </div>
-        )}
+      {/* Image Gallery Section */}
+      <div className="p-4 bg-gray-50">
+        <VehicleImageGallery images={vehicle.images} vehicleTitle={vehicle.title} />
       </div>
 
       {/* Content Section */}
       <div className="p-5">
+        {/* New Status Badge */}
+        {vehicle.km !== null && vehicle.km === 0 && (
+          <div className="mb-3 inline-block bg-success text-white text-xs font-semibold px-3 py-1 rounded-full shadow-lg">
+            חדש מהאפס
+          </div>
+        )}
+
         {/* Title */}
         <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-primary transition-colors">
           {vehicle.title}
