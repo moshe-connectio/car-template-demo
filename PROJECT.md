@@ -116,6 +116,9 @@ SUPABASE_DB_SCHEMA=public
 ### 5. Webhook API (`src/app/api/webhooks/vehicles`)
 - ✓ POST endpoint for creating vehicles
 - ✓ POST endpoint for updating vehicles
+- ✓ POST endpoint for upserting vehicles (create or update by CRM ID)
+- ✓ `crmid` field to prevent duplicates from external systems
+- ✓ Smart logic: checks if crmid exists, updates if yes, creates if no
 - ✓ Full validation and error handling
 - ✓ Comprehensive API documentation in `WEBHOOK_DOCS.md`
 - ✓ Examples for cURL, JavaScript, and Python
@@ -178,4 +181,4 @@ npm run dev
 
 ---
 
-**Last Updated:** December 4, 2025 - Webhook API implemented and deployed, ready for third-party integrations
+**Last Updated:** December 4, 2025 - Added crmid field and upsert functionality for Zoho CRM integration
