@@ -31,13 +31,19 @@ Content-Type: application/json
     "year": 2024,
     "price": 125000,
     "is_published": true,
+    "crmid": "ZOHO-DEAL-12345",
+    "external_id": "INV-2024-001",
     "km": 0,
     "gear_type": "Automatic",
     "fuel_type": "Petrol",
-    "main_image_url": "https://example.com/image.jpg",
-    "short_description": "Beautiful Toyota Camry with low mileage",
-    "external_id": "ZOHO-12345",
-    "raw_data": { "color": "Black", "transmission": "CVT" }
+    "main_image_url": "https://example.com/toyota-camry.jpg",
+    "short_description": "Beautiful Toyota Camry with low mileage and full warranty",
+    "raw_data": {
+      "color": "Black",
+      "interior": "Leather",
+      "transmission": "CVT",
+      "features": ["Cruise Control", "Backup Camera", "Bluetooth"]
+    }
   }
 }
 ```
@@ -81,6 +87,31 @@ Content-Type: application/json
 
 ---
 
+## Complete Field Reference
+
+| Field | Type | Required | Default | Description |
+|-------|------|----------|---------|-------------|
+| `id` | uuid | Auto | gen_random_uuid() | Unique identifier (auto-generated) |
+| `created_at` | timestamp | Auto | now() | Creation time (auto-generated) |
+| `updated_at` | timestamp | Auto | now() | Last update time (auto-generated) |
+| `slug` | text | ✅ Yes | - | URL-friendly unique identifier |
+| `title` | text | ✅ Yes | - | Vehicle display name |
+| `brand` | text | ✅ Yes | - | Manufacturer (e.g., Toyota, BMW) |
+| `model` | text | ✅ Yes | - | Model name (e.g., Camry, X5) |
+| `year` | integer | ✅ Yes | - | Model year (e.g., 2024) |
+| `price` | numeric | ✅ Yes | - | Price in your currency |
+| `is_published` | boolean | No | true | Visibility on website |
+| `crmid` | text | No | null | CRM system ID (Zoho, Salesforce) |
+| `external_id` | text | No | null | Additional external reference |
+| `km` | integer | No | null | Mileage in kilometers |
+| `gear_type` | text | No | null | Transmission type |
+| `fuel_type` | text | No | null | Fuel type |
+| `main_image_url` | text | No | null | Primary image URL |
+| `short_description` | text | No | null | Brief description |
+| `raw_data` | jsonb | No | null | Additional metadata (JSON) |
+
+---
+
 ## Required Fields
 
 ### Create Action
@@ -105,13 +136,21 @@ Content-Type: application/json
 ## Optional Fields
 
 For both create and update actions, you can include:
-- `km` - Mileage in kilometers
-- `gear_type` - Transmission type (e.g., "Manual", "Automatic", "CVT")
-- `fuel_type` - Fuel type (e.g., "Petrol", "Diesel", "Electric", "Hybrid")
-- `main_image_url` - URL to the main vehicle image
-- `short_description` - Brief description of the vehicle
-- `external_id` - Reference ID from external system (e.g., Zoho CRM ID)
-- `raw_data` - Additional metadata as JSON object
+- `crmid` (text) - CRM system ID (Zoho, Salesforce, etc.) for preventing duplicates
+- `external_id` (text) - Additional external reference ID
+- `km` (integer) - Mileage in kilometers
+- `gear_type` (text) - Transmission type (e.g., "Manual", "Automatic", "CVT")
+- `fuel_type` (text) - Fuel type (e.g., "Petrol", "Diesel", "Electric", "Hybrid")
+- `main_image_url` (text) - URL to the main vehicle image
+- `short_description` (text) - Brief description of the vehicle
+- `raw_data` (jsonb) - Additional metadata as JSON object (any structure)
+
+## Auto-Generated Fields (Do Not Send)
+
+These fields are automatically managed by the database:
+- `id` (uuid) - Unique identifier, auto-generated
+- `created_at` (timestamp) - Creation timestamp, auto-set
+- `updated_at` (timestamp) - Last update timestamp, auto-set
 
 ---
 
