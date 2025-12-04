@@ -47,23 +47,28 @@ Content-Type: application/json
   },
   "images": [
     {
-      "image_url": "https://example.com/images/camry-front.jpg",
+      "image_url": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQH/2wBDAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQH/wAARCABQAFADASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL...",
       "position": 1,
       "alt_text": "Front view of the vehicle"
     },
     {
-      "image_url": "https://example.com/images/camry-side.jpg",
+      "image_url": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQH...",
       "position": 2,
       "alt_text": "Side view"
     },
     {
       "image_url": "https://example.com/images/camry-interior.jpg",
       "position": 3,
-      "alt_text": "Interior view"
+      "alt_text": "Interior view (external URL)"
     }
   ]
 }
 ```
+
+**הערה:** `image_url` יכול להיות:
+- `data:image/jpeg;base64,...` - התמונה תישמר בתוך הפרויקט
+- `data:image/png;base64,...` - PNG תומך גם
+- `https://...` - קישור חיצוני (לא יישמר בתוך הפרויקט)
 
 #### Update Vehicle
 
@@ -252,6 +257,24 @@ You can attach up to 10 images to each vehicle. Images are stored separately and
   - **Image counter** showing total images per vehicle
   - **Responsive design** that works on all devices
 
+### Image Storage
+
+**Local Images (Base64):**
+- Saved to: `/public/vehicles/images/{vehicleId}/image-{position}.{ext}`
+- Served from: `/vehicles/images/{vehicleId}/image-1.jpg`
+- No external dependencies
+- Full control over assets
+
+**External Images (URLs):**
+- Used as-is from provided URLs
+- No local copy stored
+- Useful for CDN or hosted images
+
+**Mixed Approach:**
+- Use base64 for critical images (position 1)
+- Use URLs for additional images
+- Combine as needed per vehicle
+
 ---
 
 ## Auto-Generated Fields (Do Not Send)
@@ -296,6 +319,51 @@ These fields are automatically managed by the database:
 ---
 
 ## Examples
+
+### cURL - Create Vehicle with Local Images (Base64)
+
+```bash
+curl -X POST https://car-template-demo.vercel.app/api/webhooks/vehicles \
+  -H "Content-Type: application/json" \
+  -d '{
+    "action": "create",
+    "data": {
+      "slug": "honda-civic-2024",
+      "title": "Honda Civic 2024",
+      "brand": "Honda",
+      "model": "Civic",
+      "year": 2024,
+      "price": 28500,
+      "is_published": true,
+      "km": 0,
+      "gear_type": "Automatic",
+      "fuel_type": "Petrol"
+    },
+    "images": [
+      {
+        "image_url": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQH/2wBDAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQH/wAARCABQAFADASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL...",
+        "position": 1,
+        "alt_text": "Honda Civic 2024 front view"
+      },
+      {
+        "image_url": "data:image/jpeg;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA AAAFCAYAAACNbyblAAAAHElEQVQI12P4/8/w38GIAX8FL3C...",
+        "position": 2,
+        "alt_text": "Honda Civic 2024 side view"
+      }
+    ]
+  }'
+```
+
+**תשובה:**
+```json
+{
+  "success": true,
+  "message": "Vehicle created successfully",
+  "vehicleId": "550e8400-e29b-41d4-a716-446655440000",
+  "action": "created",
+  "imagesAdded": 2
+}
+```
 
 ### cURL - Update Vehicle
 
