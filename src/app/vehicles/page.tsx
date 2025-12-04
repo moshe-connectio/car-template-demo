@@ -23,7 +23,7 @@ export default async function VehiclesPage() {
 
       <main className="flex-1">
         {/* Hero Section */}
-        <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white py-12">
+        <div className="bg-linear-to-r from-blue-600 to-blue-800 text-white py-12">
           <Container>
             <h1 className="text-4xl md:text-5xl font-bold mb-4">
               רכבים למכירה

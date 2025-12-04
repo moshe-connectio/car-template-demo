@@ -18,7 +18,7 @@ export function VehicleCard({ vehicle }: VehicleCardProps) {
             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
+          <div className="w-full h-full flex items-center justify-center bg-linear-to-br from-gray-100 to-gray-200">
             <svg 
               className="w-20 h-20 text-gray-400" 
               fill="none" 
