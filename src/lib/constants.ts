@@ -1,14 +1,16 @@
 /**
  * Application Constants
- * All static values and configuration constants for the application
+ * Imported from the main dealership config
  */
 
+import { dealershipConfig } from '@/config/dealership.config';
+
 export const APP_CONFIG = {
-  name: 'Car Dealership',
-  description: 'מציעים את מגוון הרכבים הטוב ביותר',
-  locale: 'he-IL',
-  currency: 'ILS',
-  currencySymbol: '₪',
+  name: dealershipConfig.business.name,
+  description: dealershipConfig.business.description,
+  locale: dealershipConfig.locale.language,
+  currency: dealershipConfig.locale.currency,
+  currencySymbol: dealershipConfig.locale.currencySymbol,
 } as const;
 
 export const ROUTES = {
@@ -24,15 +26,15 @@ export const ROUTES = {
 } as const;
 
 export const CONTACT_INFO = {
-  phone: '050-123-4567',
-  email: 'info@cardealership.com',
-  address: 'תל אביב, ישראל',
+  phone: dealershipConfig.contact.phone,
+  email: dealershipConfig.contact.email,
+  address: dealershipConfig.contact.address,
 } as const;
 
 export const SOCIAL_LINKS = {
-  facebook: '#',
-  instagram: '#',
-  whatsapp: '#',
+  facebook: dealershipConfig.social.facebook,
+  instagram: dealershipConfig.social.instagram,
+  whatsapp: dealershipConfig.social.whatsapp,
 } as const;
 
 export const VEHICLE_FILTERS = {
@@ -53,12 +55,12 @@ export const VEHICLE_FILTERS = {
 } as const;
 
 export const ISR_REVALIDATE = {
-  vehicles: 60,        // 1 minute
-  vehicleDetail: 300,  // 5 minutes
-  home: 3600,         // 1 hour
+  vehicles: dealershipConfig.cache.vehiclesPageRevalidate,
+  vehicleDetail: dealershipConfig.cache.vehicleDetailRevalidate,
+  home: dealershipConfig.cache.homePageRevalidate,
 } as const;
 
 export const PAGINATION = {
-  vehiclesPerPage: 12,
+  vehiclesPerPage: dealershipConfig.pagination.vehiclesPerPage,
   maxPages: 100,
 } as const;

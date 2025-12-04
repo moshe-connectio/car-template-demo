@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 // @ts-ignore - CSS import
 import "./globals.css";
-import { APP_CONFIG } from "@/lib/constants";
+import { dealershipConfig } from "@/config/dealership.config";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: APP_CONFIG.name,
-  description: APP_CONFIG.description,
+  title: dealershipConfig.business.name,
+  description: dealershipConfig.business.description,
 };
 
 export default function RootLayout({
