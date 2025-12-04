@@ -62,20 +62,36 @@ type WebhookPayload = {
  */
 async function downloadImage(imageUrl: string): Promise<Buffer> {
   try {
-    const response = await fetch(imageUrl, {
+    // For Google Drive URLs, convert to direct download URL
+    let downloadUrl = imageUrl;
+    if (imageUrl.includes('drive.google.com')) {
+      // Extract file ID from Google Drive URL
+      const fileIdMatch = imageUrl.match(/[?&]id=([a-zA-Z0-9-_]+)/);
+      if (fileIdMatch && fileIdMatch[1]) {
+        downloadUrl = `https://drive.google.com/uc?id=${fileIdMatch[1]}&export=download`;
+      }
+    }
+
+    console.log(`📥 Downloading from: ${downloadUrl}`);
+    const response = await fetch(downloadUrl, {
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
       },
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to download image: ${response.statusText}`);
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    const contentType = response.headers.get('content-type') || '';
+    if (!contentType.includes('image')) {
+      throw new Error(`Invalid content type: ${contentType}. Expected image.`);
     }
 
     const arrayBuffer = await response.arrayBuffer();
     return Buffer.from(arrayBuffer);
   } catch (error) {
-    console.error(`❌ Error downloading image from ${imageUrl}:`, error);
+    console.error(`❌ Error downloading image:`, error);
     throw error;
   }
 }
@@ -105,7 +121,8 @@ async function uploadImageToSupabase(
     const fileName = `${position}-${timestamp}.${ext}`;
     const filePath = `${folderPath}/${fileName}`;
 
-    console.log(`📤 Uploading image to: ${filePath}`);
+    console.log(`📤 Uploading image to Supabase: ${filePath}`);
+    console.log(`   Buffer size: ${imageBuffer.length} bytes`);
 
     const { data, error } = await client.storage
       .from('vehicle-images')
@@ -115,7 +132,8 @@ async function uploadImageToSupabase(
       });
 
     if (error) {
-      throw new Error(`Supabase upload error: ${error.message}`);
+      console.error(`❌ Supabase upload error:`, error);
+      throw new Error(`Supabase upload failed: ${error.message}`);
     }
 
     // Get public URL
@@ -124,7 +142,8 @@ async function uploadImageToSupabase(
       .getPublicUrl(filePath);
 
     const publicUrl = publicUrlData.publicUrl;
-    console.log(`✅ Image uploaded successfully: ${publicUrl}`);
+    console.log(`✅ Image uploaded successfully`);
+    console.log(`   URL: ${publicUrl}`);
 
     return publicUrl;
   } catch (error) {
