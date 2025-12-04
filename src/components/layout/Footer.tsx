@@ -5,12 +5,12 @@ export function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="bg-gray-900 text-gray-300 mt-16">
+    <footer className="bg-footer text-footer mt-16">
       <Container className="py-12">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* About */}
           <div>
-            <h3 className="text-white font-bold text-lg mb-4">{APP_CONFIG.name}</h3>
+            <h3 className="text-footer-heading font-bold text-lg mb-4">{APP_CONFIG.name}</h3>
             <p className="text-sm leading-relaxed">
               מציעים את מגוון הרכבים הטוב ביותר עם שירות אמין ומקצועי. הצוות שלנו כאן כדי לעזור לך למצוא את הרכב המושלם.
             </p>
@@ -18,20 +18,20 @@ export function Footer() {
 
           {/* Quick Links */}
           <div>
-            <h3 className="text-white font-bold text-lg mb-4">קישורים מהירים</h3>
+            <h3 className="text-footer-heading font-bold text-lg mb-4">קישורים מהירים</h3>
             <ul className="space-y-2 text-sm">
               <li>
-                <a href={ROUTES.home} className="hover:text-white transition-colors">
+                <a href={ROUTES.home} className="hover:text-footer-heading transition-colors">
                   דף הבית
                 </a>
               </li>
               <li>
-                <a href={ROUTES.vehicles} className="hover:text-white transition-colors">
+                <a href={ROUTES.vehicles} className="hover:text-footer-heading transition-colors">
                   רכבים למכירה
                 </a>
               </li>
               <li>
-                <a href={ROUTES.demo} className="hover:text-white transition-colors">
+                <a href={ROUTES.demo} className="hover:text-footer-heading transition-colors">
                   דמו
                 </a>
               </li>
@@ -40,7 +40,7 @@ export function Footer() {
 
           {/* Contact Info */}
           <div>
-            <h3 className="text-white font-bold text-lg mb-4">צור קשר</h3>
+            <h3 className="text-footer-heading font-bold text-lg mb-4">צור קשר</h3>
             <ul className="space-y-2 text-sm">
               <li className="flex items-center gap-2">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -66,7 +66,7 @@ export function Footer() {
         </div>
 
         {/* Bottom Bar */}
-        <div className="border-t border-gray-800 mt-8 pt-8 text-sm text-center">
+        <div className="border-footer mt-8 pt-8 text-sm text-center border-t">
           <p>© {currentYear} {APP_CONFIG.name}. כל הזכויות שמורות.</p>
         </div>
       </Container>

@@ -18,7 +18,7 @@ export default async function VehiclesDemoPage() {
       <h1 className="text-2xl font-bold mb-4">Vehicles Demo (DB)</h1>
 
       {error && (
-        <div className="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+        <div className="mb-6 p-4 bg-error/10 border border-error text-error rounded">
           {error}
         </div>
       )}
@@ -51,7 +51,7 @@ export default async function VehiclesDemoPage() {
                   {vehicle.brand} {vehicle.model} ({vehicle.year})
                 </p>
 
-                <p className="text-xl font-bold text-green-600 mb-3">
+                <p className="text-xl font-bold text-success mb-3">
                   ₪{vehicle.price.toLocaleString('he-IL')}
                 </p>
 
