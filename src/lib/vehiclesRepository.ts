@@ -22,8 +22,11 @@ export type Vehicle = {
 
 export async function getPublishedVehicles(): Promise<Vehicle[]> {
   try {
+    console.log('🔍 Creating Supabase client...');
     const client = createServerSupabaseClient();
+    console.log('✅ Client created');
 
+    console.log('🔍 Fetching published vehicles...');
     const { data, error } = await client
       .from('vehicles')
       .select('*')
@@ -31,13 +34,14 @@ export async function getPublishedVehicles(): Promise<Vehicle[]> {
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Error fetching published vehicles:', error);
+      console.error('❌ Error fetching published vehicles:', error);
       throw new Error(`Failed to fetch vehicles: ${error.message}`);
     }
 
+    console.log(`✅ Successfully fetched ${data?.length ?? 0} vehicles`);
     return data ?? [];
   } catch (err) {
-    console.error('Unexpected error in getPublishedVehicles:', err);
+    console.error('❌ Unexpected error in getPublishedVehicles:', err);
     throw err;
   }
 }
@@ -61,6 +65,64 @@ export async function getVehicleBySlug(slug: string): Promise<Vehicle | null> {
     return data ?? null;
   } catch (err) {
     console.error('Unexpected error in getVehicleBySlug:', err);
+    throw err;
+  }
+}
+
+export type CreateVehicleInput = Omit<Vehicle, 'id' | 'created_at' | 'updated_at'>;
+
+export async function createVehicle(
+  vehicleData: CreateVehicleInput
+): Promise<Vehicle> {
+  try {
+    console.log('🔍 Creating new vehicle...');
+    const client = createServerSupabaseClient();
+
+    const { data, error } = await client
+      .from('vehicles')
+      .insert([vehicleData])
+      .select()
+      .single();
+
+    if (error) {
+      console.error('❌ Error creating vehicle:', error);
+      throw new Error(`Failed to create vehicle: ${error.message}`);
+    }
+
+    console.log('✅ Vehicle created successfully:', data?.id);
+    return data;
+  } catch (err) {
+    console.error('❌ Unexpected error in createVehicle:', err);
+    throw err;
+  }
+}
+
+export type UpdateVehicleInput = Partial<Omit<Vehicle, 'id' | 'created_at' | 'updated_at'>>;
+
+export async function updateVehicle(
+  id: string,
+  vehicleData: UpdateVehicleInput
+): Promise<Vehicle> {
+  try {
+    console.log(`🔍 Updating vehicle ${id}...`);
+    const client = createServerSupabaseClient();
+
+    const { data, error } = await client
+      .from('vehicles')
+      .update(vehicleData)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('❌ Error updating vehicle:', error);
+      throw new Error(`Failed to update vehicle: ${error.message}`);
+    }
+
+    console.log('✅ Vehicle updated successfully:', id);
+    return data;
+  } catch (err) {
+    console.error('❌ Unexpected error in updateVehicle:', err);
     throw err;
   }
 }
