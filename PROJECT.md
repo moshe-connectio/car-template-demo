@@ -113,6 +113,14 @@ SUPABASE_DB_SCHEMA=public
 - ✓ Live deployment working at: `https://car-template-demo.vercel.app/demo/vehicles`
 - ✓ All 3 vehicles displaying correctly in production
 
+### 5. Webhook API (`src/app/api/webhooks/vehicles`)
+- ✓ POST endpoint for creating vehicles
+- ✓ POST endpoint for updating vehicles
+- ✓ Full validation and error handling
+- ✓ Comprehensive API documentation in `WEBHOOK_DOCS.md`
+- ✓ Examples for cURL, JavaScript, and Python
+- ✓ Ready for Zoho CRM integration
+
 ---
 
 ## 🚀 How to Run
@@ -135,14 +143,15 @@ npm run dev
 
 ## 📝 Next Steps / Roadmap
 
+- [ ] Test webhook in production (create/update vehicles via API)
 - [ ] Create individual vehicle detail page (`src/app/vehicles/[slug]/page.tsx`)
 - [ ] Add vehicle search and filtering functionality
 - [ ] Enhance home page (`src/app/page.tsx`) with featured vehicles
+- [ ] Implement Zoho CRM webhook integration
 - [ ] Add vehicle comparison feature
 - [ ] Implement Next.js Image component for image optimization
 - [ ] Implement SEO metadata for vehicle pages (dynamic Open Graph tags)
-- [ ] Create contact form (linked to Zoho CRM - future)
-- [ ] Implement Zoho CRM integration (`src/lib/zoho/`)
+- [ ] Create contact form (linked to Zoho CRM)
 - [ ] Create admin panel for vehicle management
 - [ ] Add analytics tracking
 - [ ] Mobile-responsive refinements and A/B testing
@@ -169,4 +178,4 @@ npm run dev
 
 ---
 
-**Last Updated:** December 4, 2025 - Vercel deployment successful, all features working in production
+**Last Updated:** December 4, 2025 - Webhook API implemented and deployed, ready for third-party integrations
