@@ -16,7 +16,7 @@ CREATE TABLE vehicles (
   is_published BOOLEAN DEFAULT false,
   external_id TEXT,
   crmid TEXT UNIQUE,
-  slug TEXT NOT NULL UNIQUE,
+  slug TEXT NOT NULL,
   title TEXT NOT NULL,
   brand TEXT NOT NULL,
   model TEXT NOT NULL,
@@ -36,6 +36,8 @@ CREATE INDEX idx_vehicles_slug ON vehicles(slug);
 CREATE INDEX idx_vehicles_crmid ON vehicles(crmid);
 CREATE INDEX idx_vehicles_created_at ON vehicles(created_at DESC);
 ```
+
+**Note:** The `slug` field is NOT unique because multiple vehicles can have the same name/model. The `crmid` (CRM ID) is the unique identifier used for upsert operations - if a vehicle with the same `crmid` exists, it will be updated instead of creating a duplicate.
 
 ### `vehicle_images` (NEW - Needs to be created)
 

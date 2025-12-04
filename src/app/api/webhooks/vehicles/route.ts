@@ -1,11 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { 
-  createVehicle, 
-  updateVehicle, 
   upsertVehicleByCrmId,
   addImagesToVehicle,
   CreateVehicleInput, 
-  UpdateVehicleInput,
   AddImageInput,
   VehicleImage,
 } from '@/lib/vehiclesRepository';
@@ -17,42 +14,45 @@ import {
  * 
  * Expected payload:
  * {
- *   "action": "create" | "update" | "upsert",
+ *   "crmid": "ZOHO-DEAL-12345",  // Required - use this as the unique identifier
  *   "data": {
- *     // For create: all required fields (slug, title, brand, model, year, price, is_published)
- *     // For update: at least one field to update
- *     // For upsert: crmid is required, will create or update based on crmid
+ *     "slug": "tesla-model-3",
+ *     "title": "Tesla Model 3",
+ *     "brand": "Tesla",
+ *     "model": "Model 3",
+ *     "year": 2024,
+ *     "price": 45000,
+ *     "is_published": true,
+ *     // Optional fields
+ *     "km": 50000,
+ *     "gear_type": "automatic",
+ *     "fuel_type": "electric",
+ *     "main_image_url": "https://...",
+ *     "short_description": "...",
+ *     "raw_data": {}
  *   },
- *   "vehicleId": "uuid",  // Required only for update action
- *   "crmid": "string",    // Optional for create, required for upsert
- *   "images": [           // Optional for all actions
+ *   "images": [           // Optional
  *     {
- *       "image_url": "https://..." OR "data:image/jpeg;base64,...",
+ *       "image_url": "https://...",
  *       "position": 1,    // 1-10 (1 is primary image)
- *       "alt_text": "Car image description"
+ *       "alt_text": "Front view"
  *     }
  *   ]
  * }
+ * 
+ * IMPORTANT: 
+ * - crmid is the unique identifier for upserting vehicles
+ * - If crmid exists, the vehicle will be UPDATED
+ * - If crmid doesn't exist, a NEW vehicle will be created
+ * - Multiple vehicles can have the same slug/title (e.g., multiple Tesla Model 3s in different colors/years)
+ * - Only external image URLs are supported (no base64)
  */
 
-type WebhookPayload = 
-  | {
-      action: 'create';
-      data: CreateVehicleInput;
-      images?: AddImageInput[];
-    }
-  | {
-      action: 'update';
-      vehicleId: string;
-      data: UpdateVehicleInput;
-      images?: AddImageInput[];
-    }
-  | {
-      action: 'upsert';
-      crmid: string;
-      data: CreateVehicleInput;
-      images?: AddImageInput[];
-    };
+type WebhookPayload = {
+  crmid: string; // Required - unique identifier for upsert
+  data: CreateVehicleInput;
+  images?: AddImageInput[];
+};
 
 export async function POST(request: NextRequest) {
   try {
@@ -63,13 +63,6 @@ export async function POST(request: NextRequest) {
     console.log('📦 Payload:', JSON.stringify(body, null, 2));
 
     // Validate basic structure
-    if (!body.action) {
-      return NextResponse.json(
-        { error: 'Missing required field: action' },
-        { status: 400 }
-      );
-    }
-
     if (!body.data) {
       return NextResponse.json(
         { error: 'Missing required field: data' },
@@ -77,187 +70,78 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    if (!body.crmid) {
+      return NextResponse.json(
+        { error: 'Missing required field: crmid (use crmid as unique identifier)' },
+        { status: 400 }
+      );
+    }
+
     const payload = body as WebhookPayload;
+    const createData = payload.data as CreateVehicleInput;
 
-    // Handle create action
-    if (payload.action === 'create') {
-      const createData = payload.data as CreateVehicleInput;
+    // Validate required fields
+    const requiredFields = ['slug', 'title', 'brand', 'model', 'year', 'price'];
+    const missingFields = requiredFields.filter((field) => !(field in createData));
 
-      // Validate required fields
-      const requiredFields = ['slug', 'title', 'brand', 'model', 'year', 'price'];
-      const missingFields = requiredFields.filter((field) => !(field in createData));
-
-      if (missingFields.length > 0) {
-        return NextResponse.json(
-          { 
-            error: `Missing required fields for create: ${missingFields.join(', ')}` 
-          },
-          { status: 400 }
-        );
-      }
-
-      const newVehicle = await createVehicle(createData);
-
-      // Add images if provided
-      let addedImages: VehicleImage[] = [];
-      if (payload.images && payload.images.length > 0) {
-        const processedImages: AddImageInput[] = [];
-
-        // Process each image - only accept external URLs
-        for (const img of payload.images) {
-          // Skip base64 images (not supported in serverless environment)
-          if (img.image_url.startsWith('data:image/')) {
-            console.warn(`⚠️ Skipping base64 image at position ${img.position} - only external URLs are supported`);
-            continue;
-          }
-
-          processedImages.push({
-            ...img,
-            vehicle_id: newVehicle.id,
-            image_url: img.image_url,
-          });
-        }
-
-        if (processedImages.length > 0) {
-          addedImages = await addImagesToVehicle(newVehicle.id, processedImages);
-          console.log(`✅ Added ${addedImages.length} images to new vehicle`);
-        }
-      }
-
+    if (missingFields.length > 0) {
       return NextResponse.json(
-        {
-          success: true,
-          message: 'Vehicle created successfully',
-          vehicleId: newVehicle.id,
-          action: 'created',
-          imagesAdded: addedImages.length,
+        { 
+          error: `Missing required fields: ${missingFields.join(', ')}` 
         },
-        { status: 201 }
+        { status: 400 }
       );
     }
 
-    // Handle update action
-    if (payload.action === 'update') {
-      if (!payload.vehicleId) {
-        return NextResponse.json(
-          { error: 'Missing required field for update: vehicleId' },
-          { status: 400 }
-        );
-      }
+    console.log(`🔄 Upserting vehicle with crmid: ${payload.crmid}`);
 
-      const updateData = payload.data as UpdateVehicleInput;
+    // Always use upsert by crmid
+    // If the vehicle exists (same crmid), it will be updated
+    // If it doesn't exist, a new one will be created
+    const result = await upsertVehicleByCrmId(payload.crmid, {
+      ...createData,
+      crmid: payload.crmid,
+    });
 
-      const updatedVehicle = await updateVehicle(payload.vehicleId, updateData);
+    console.log(`✅ Vehicle ${result.action === 'created' ? 'created' : 'updated'}: ${result.vehicle.id}`);
 
-      // Add images if provided
-      let addedImages: VehicleImage[] = [];
-      if (payload.images && payload.images.length > 0) {
-        const processedImages: AddImageInput[] = [];
+    // Add images if provided
+    let addedImages: VehicleImage[] = [];
+    if (payload.images && payload.images.length > 0) {
+      const processedImages: AddImageInput[] = [];
 
-        // Process each image - only accept external URLs
-        for (const img of payload.images) {
-          // Skip base64 images (not supported in serverless environment)
-          if (img.image_url.startsWith('data:image/')) {
-            console.warn(`⚠️ Skipping base64 image at position ${img.position} - only external URLs are supported`);
-            continue;
-          }
-
-          processedImages.push({
-            ...img,
-            vehicle_id: payload.vehicleId,
-            image_url: img.image_url,
-          });
+      // Process each image - only accept external URLs
+      for (const img of payload.images) {
+        // Skip base64 images (not supported in serverless environment)
+        if (img.image_url.startsWith('data:image/')) {
+          console.warn(`⚠️ Skipping base64 image at position ${img.position} - only external URLs are supported`);
+          continue;
         }
 
-        if (processedImages.length > 0) {
-          addedImages = await addImagesToVehicle(payload.vehicleId, processedImages);
-          console.log(`✅ Added ${addedImages.length} images to vehicle`);
-        }
+        processedImages.push({
+          ...img,
+          vehicle_id: result.vehicle.id,
+          image_url: img.image_url,
+        });
       }
 
-      return NextResponse.json(
-        {
-          success: true,
-          message: 'Vehicle updated successfully',
-          vehicleId: updatedVehicle.id,
-          action: 'updated',
-          imagesAdded: addedImages.length,
-        },
-        { status: 200 }
-      );
+      if (processedImages.length > 0) {
+        addedImages = await addImagesToVehicle(result.vehicle.id, processedImages);
+        console.log(`✅ Added ${addedImages.length} images to vehicle`);
+      }
     }
 
-    // Handle upsert action
-    if (payload.action === 'upsert') {
-      if (!payload.crmid) {
-        return NextResponse.json(
-          { error: 'Missing required field for upsert: crmid' },
-          { status: 400 }
-        );
-      }
-
-      const createData = payload.data as CreateVehicleInput;
-
-      // Validate required fields for creation (in case vehicle doesn't exist)
-      const requiredFields = ['slug', 'title', 'brand', 'model', 'year', 'price'];
-      const missingFields = requiredFields.filter((field) => !(field in createData));
-
-      if (missingFields.length > 0) {
-        return NextResponse.json(
-          { 
-            error: `Missing required fields for upsert: ${missingFields.join(', ')}` 
-          },
-          { status: 400 }
-        );
-      }
-
-      // Ensure crmid is set in the data
-      const dataWithCrmId = { ...createData, crmid: payload.crmid };
-
-      const result = await upsertVehicleByCrmId(payload.crmid, dataWithCrmId);
-
-      // Add images if provided
-      let addedImages: VehicleImage[] = [];
-      if (payload.images && payload.images.length > 0) {
-        const processedImages: AddImageInput[] = [];
-
-        // Process each image - only accept external URLs
-        for (const img of payload.images) {
-          // Skip base64 images (not supported in serverless environment)
-          if (img.image_url.startsWith('data:image/')) {
-            console.warn(`⚠️ Skipping base64 image at position ${img.position} - only external URLs are supported`);
-            continue;
-          }
-
-          processedImages.push({
-            ...img,
-            vehicle_id: result.vehicle.id,
-            image_url: img.image_url,
-          });
-        }
-
-        if (processedImages.length > 0) {
-          addedImages = await addImagesToVehicle(result.vehicle.id, processedImages);
-          console.log(`✅ Added ${addedImages.length} images to vehicle`);
-        }
-      }
-
-      return NextResponse.json(
-        {
-          success: true,
-          message: `Vehicle ${result.action} successfully via CRM ID`,
-          vehicleId: result.vehicle.id,
-          action: result.action,
-          imagesAdded: addedImages.length,
-        },
-        { status: result.action === 'created' ? 201 : 200 }
-      );
-    }
-
-    // Unknown action
     return NextResponse.json(
-      { error: 'Unknown action. Use "create", "update", or "upsert"' },
-      { status: 400 }
+      {
+        success: true,
+        message: result.action === 'created' 
+          ? 'Vehicle created successfully' 
+          : 'Vehicle updated successfully',
+        vehicleId: result.vehicle.id,
+        action: result.action,
+        imagesAdded: addedImages.length,
+      },
+      { status: result.action === 'created' ? 201 : 200 }
     );
   } catch (error) {
     console.error('❌ Webhook error:', error);
