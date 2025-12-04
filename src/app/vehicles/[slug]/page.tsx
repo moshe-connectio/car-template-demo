@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Vehicle } from '@/lib/vehiclesRepository';
-import { formatPrice, formatKilometers } from '@/lib/utils';
+import { formatPrice, formatKilometers, extractIdFromSlug } from '@/lib/utils';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { Container } from '@/components/layout/Container';
@@ -37,7 +37,7 @@ export default function VehicleDetailPage({ params }: VehicleDetailPageProps) {
     const fetchVehicle = async () => {
       try {
         setLoading(true);
-        // Call API endpoint to fetch vehicle
+        // Call API endpoint to fetch vehicle (slug contains ID at the end)
         const response = await fetch(`/api/vehicles/${slug}`);
         
         if (!response.ok) {
@@ -51,6 +51,7 @@ export default function VehicleDetailPage({ params }: VehicleDetailPageProps) {
           setVehicle(null);
         } else {
           setVehicle(data);
+          setSelectedImageIndex(0);
         }
       } catch (err) {
         console.error('Error fetching vehicle:', err);
@@ -149,6 +150,7 @@ export default function VehicleDetailPage({ params }: VehicleDetailPageProps) {
                       vehicleTitle={vehicle.title}
                       selectedIndex={selectedImageIndex}
                       onImageChange={setSelectedImageIndex}
+                      imageHeight="h-[550px]"
                     />
                   </div>
                 </div>

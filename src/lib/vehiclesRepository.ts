@@ -124,6 +124,89 @@ export async function getVehicleBySlug(slug: string): Promise<Vehicle | null> {
   }
 }
 
+export async function getVehicleById(id: string): Promise<Vehicle | null> {
+  try {
+    const client = createServerSupabaseClient();
+
+    const response = await client
+      .from('vehicles')
+      .select(`
+        *,
+        images:vehicle_images(id, vehicle_id, image_url, position, alt_text, uploaded_at)
+      `)
+      .eq('id', id)
+      .single();
+
+    let data = response.data;
+    let error = response.error;
+
+    // If the relationship doesn't exist yet, fall back to basic fetch
+    if (error && error.code === 'PGRST200') {
+      console.warn(
+        '⚠️ vehicle_images table not found or relationship not defined, falling back to basic fetch'
+      );
+      const fallbackResponse = await client
+        .from('vehicles')
+        .select('*')
+        .eq('id', id)
+        .single();
+      data = fallbackResponse.data;
+      error = fallbackResponse.error;
+    }
+
+    if (error) {
+      console.error('Error fetching vehicle by id:', error);
+      throw new Error(`Failed to fetch vehicle: ${error.message}`);
+    }
+
+    return data ?? null;
+  } catch (err) {
+    console.error('Unexpected error in getVehicleById:', err);
+    throw err;
+  }
+}
+
+export async function getVehicleByIdSuffix(idSuffix: string): Promise<Vehicle | null> {
+  try {
+    const client = createServerSupabaseClient();
+
+    // Fetch all vehicles and find the one whose ID ends with the suffix
+    const response = await client
+      .from('vehicles')
+      .select(`
+        *,
+        images:vehicle_images(id, vehicle_id, image_url, position, alt_text, uploaded_at)
+      `);
+
+    let data = response.data;
+    let error = response.error;
+
+    // If the relationship doesn't exist yet, fall back to basic fetch
+    if (error && error.code === 'PGRST200') {
+      console.warn(
+        '⚠️ vehicle_images table not found or relationship not defined, falling back to basic fetch'
+      );
+      const fallbackResponse = await client
+        .from('vehicles')
+        .select('*');
+      data = fallbackResponse.data;
+      error = fallbackResponse.error;
+    }
+
+    if (error) {
+      console.error('Error fetching vehicles:', error);
+      throw new Error(`Failed to fetch vehicles: ${error.message}`);
+    }
+
+    // Find vehicle whose ID ends with the suffix
+    const vehicle = data?.find((v: Vehicle) => v.id.endsWith(idSuffix));
+    return vehicle ?? null;
+  } catch (err) {
+    console.error('Unexpected error in getVehicleByIdSuffix:', err);
+    throw err;
+  }
+}
+
 export async function getVehicleByCrmId(crmid: string): Promise<Vehicle | null> {
   try {
     console.log(`🔍 Fetching vehicle by CRM ID: ${crmid}`);

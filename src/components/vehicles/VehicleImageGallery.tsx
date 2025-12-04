@@ -10,6 +10,7 @@ interface VehicleImageGalleryProps {
   disableThumbnailClick?: boolean;
   onImageChange?: (index: number) => void;
   selectedIndex?: number;
+  imageHeight?: string; // Tailwind height class (e.g., 'h-52', 'h-96')
 }
 
 export default function VehicleImageGallery({
@@ -18,6 +19,7 @@ export default function VehicleImageGallery({
   disableThumbnailClick = false,
   onImageChange,
   selectedIndex = 0,
+  imageHeight = 'h-52',
 }: VehicleImageGalleryProps) {
   const [selectedImageIndex, setSelectedImageIndex] = useState(selectedIndex);
 
@@ -61,7 +63,7 @@ export default function VehicleImageGallery({
   return (
     <div className="w-full">
       {/* Main Image Display */}
-      <div className="relative w-full h-52 bg-gray-100 rounded-lg overflow-hidden mb-2 p-3">
+      <div className={`relative w-full ${imageHeight} bg-gray-100 rounded-lg overflow-hidden mb-2 p-3`}>
         <Image
           src={displayedImage.image_url}
           alt={displayedImage.alt_text || vehicleTitle}
