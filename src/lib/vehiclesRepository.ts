@@ -37,15 +37,15 @@ export async function getPublishedVehicles(): Promise<Vehicle[]> {
     const client = createServerSupabaseClient();
     console.log('✅ Client created');
 
-    console.log('🔍 Fetching published vehicles...');
-    // First try to fetch with images
+    console.log('🔍 Fetching vehicles (published and recently sold)...');
+    // Fetch both published vehicles AND recently sold vehicles (is_published = false)
+    // This allows us to show sold items with a ribbon for up to 2 days
     const response = await client
       .from('vehicles')
       .select(`
         *,
         images:vehicle_images(id, vehicle_id, image_url, position, alt_text, uploaded_at)
       `)
-      .eq('is_published', true)
       .order('created_at', { ascending: false });
 
     let data = response.data;
@@ -59,14 +59,13 @@ export async function getPublishedVehicles(): Promise<Vehicle[]> {
       const fallbackResponse = await client
         .from('vehicles')
         .select('*')
-        .eq('is_published', true)
         .order('created_at', { ascending: false });
       data = fallbackResponse.data;
       error = fallbackResponse.error;
     }
 
     if (error) {
-      console.error('❌ Error fetching published vehicles:', error);
+      console.error('❌ Error fetching vehicles:', error);
       throw new Error(`Failed to fetch vehicles: ${error.message}`);
     }
 
@@ -82,6 +81,9 @@ export async function getVehicleBySlug(slug: string): Promise<Vehicle | null> {
   try {
     const client = createServerSupabaseClient();
 
+    // Fetch both published and recently sold vehicles (is_published = false)
+    // This allows us to show sold items with a ribbon for up to 2 days
+    // Get first result in case multiple vehicles have the same slug
     const response = await client
       .from('vehicles')
       .select(`
@@ -89,10 +91,10 @@ export async function getVehicleBySlug(slug: string): Promise<Vehicle | null> {
         images:vehicle_images(id, vehicle_id, image_url, position, alt_text, uploaded_at)
       `)
       .eq('slug', slug)
-      .eq('is_published', true)
-      .single();
+      .order('created_at', { ascending: false })
+      .limit(1);
 
-    let data = response.data;
+    let data = response.data?.[0] ?? null;
     let error = response.error;
 
     // If the relationship doesn't exist yet, fall back to basic fetch
@@ -104,13 +106,13 @@ export async function getVehicleBySlug(slug: string): Promise<Vehicle | null> {
         .from('vehicles')
         .select('*')
         .eq('slug', slug)
-        .eq('is_published', true)
-        .single();
-      data = fallbackResponse.data;
+        .order('created_at', { ascending: false })
+        .limit(1);
+      data = fallbackResponse.data?.[0] ?? null;
       error = fallbackResponse.error;
     }
 
-    if (error && error.code !== 'PGRST116') {
+    if (error) {
       console.error('Error fetching vehicle by slug:', error);
       throw new Error(`Failed to fetch vehicle: ${error.message}`);
     }

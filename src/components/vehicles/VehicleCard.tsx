@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { Vehicle } from '@/lib/vehiclesRepository';
 import { formatPrice, formatKilometers } from '@/lib/utils';
 import VehicleImageGallery from './VehicleImageGallery';
@@ -8,19 +9,20 @@ interface VehicleCardProps {
 
 export function VehicleCard({ vehicle }: VehicleCardProps) {
   return (
-    <div 
-      className="group block bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100"
-    >
+    <Link href={`/vehicles/${vehicle.slug}`}>
+      <div 
+        className="group block bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 relative cursor-pointer"
+      >
+      {/* Sold Ribbon */}
+      {!vehicle.is_published && (
+        <div className="absolute top-4 -right-8 transform rotate-45 bg-blue-600 text-white font-bold py-1.5 px-12 shadow-lg text-xs z-10">
+          נמכר
+        </div>
+      )}
+
       {/* Image Gallery Section */}
-      <div className="p-4 bg-gray-50 relative">
+      <div className="p-4 bg-gray-50">
         <VehicleImageGallery images={vehicle.images} vehicleTitle={vehicle.title} />
-        
-        {/* Sold Ribbon */}
-        {!vehicle.is_published && (
-          <div className="absolute top-8 right-6 transform rotate-45 bg-blue-600 text-white font-bold py-2 px-8 shadow-lg text-sm">
-            נמכר
-          </div>
-        )}
       </div>
 
       {/* Content Section */}
@@ -94,6 +96,7 @@ export function VehicleCard({ vehicle }: VehicleCardProps) {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </Link>
   );
 }
