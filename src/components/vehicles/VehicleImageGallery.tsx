@@ -45,6 +45,10 @@ export default function VehicleImageGallery({
           className="object-cover hover:scale-105 transition-transform duration-300"
           priority
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 100vw"
+          onError={() => {
+            // Fallback: if Next.js Image fails, show a regular img tag
+            console.warn(`Failed to load image: ${primaryImage.image_url}`);
+          }}
         />
         {/* Position Badge */}
         <div className="absolute top-3 left-3 bg-black/70 text-white px-3 py-1 rounded-full text-xs font-semibold">
