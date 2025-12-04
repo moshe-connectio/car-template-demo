@@ -3,12 +3,15 @@ import {
   createVehicle, 
   updateVehicle, 
   upsertVehicleByCrmId,
+  addImagesToVehicle,
   CreateVehicleInput, 
-  UpdateVehicleInput 
+  UpdateVehicleInput,
+  AddImageInput,
+  VehicleImage,
 } from '@/lib/vehiclesRepository';
 
 /**
- * Webhook endpoint for creating/updating vehicles
+ * Webhook endpoint for creating/updating vehicles and their images
  * 
  * POST /api/webhooks/vehicles
  * 
@@ -21,7 +24,14 @@ import {
  *     // For upsert: crmid is required, will create or update based on crmid
  *   },
  *   "vehicleId": "uuid",  // Required only for update action
- *   "crmid": "string"     // Optional for create, required for upsert
+ *   "crmid": "string",    // Optional for create, required for upsert
+ *   "images": [           // Optional for all actions
+ *     {
+ *       "image_url": "https://...",
+ *       "position": 1,    // 1-10 (1 is primary image)
+ *       "alt_text": "Car image description"
+ *     }
+ *   ]
  * }
  */
 
@@ -29,16 +39,19 @@ type WebhookPayload =
   | {
       action: 'create';
       data: CreateVehicleInput;
+      images?: AddImageInput[];
     }
   | {
       action: 'update';
       vehicleId: string;
       data: UpdateVehicleInput;
+      images?: AddImageInput[];
     }
   | {
       action: 'upsert';
       crmid: string;
       data: CreateVehicleInput;
+      images?: AddImageInput[];
     };
 
 export async function POST(request: NextRequest) {
@@ -85,12 +98,24 @@ export async function POST(request: NextRequest) {
 
       const newVehicle = await createVehicle(createData);
 
+      // Add images if provided
+      let addedImages: VehicleImage[] = [];
+      if (payload.images && payload.images.length > 0) {
+        const imagesWithVehicleId = payload.images.map((img) => ({
+          ...img,
+          vehicle_id: newVehicle.id,
+        }));
+        addedImages = await addImagesToVehicle(newVehicle.id, imagesWithVehicleId);
+        console.log(`✅ Added ${addedImages.length} images to new vehicle`);
+      }
+
       return NextResponse.json(
         {
           success: true,
           message: 'Vehicle created successfully',
           vehicleId: newVehicle.id,
           action: 'created',
+          imagesAdded: addedImages.length,
         },
         { status: 201 }
       );
@@ -109,12 +134,24 @@ export async function POST(request: NextRequest) {
 
       const updatedVehicle = await updateVehicle(payload.vehicleId, updateData);
 
+      // Add images if provided
+      let addedImages: VehicleImage[] = [];
+      if (payload.images && payload.images.length > 0) {
+        const imagesWithVehicleId = payload.images.map((img) => ({
+          ...img,
+          vehicle_id: payload.vehicleId,
+        }));
+        addedImages = await addImagesToVehicle(payload.vehicleId, imagesWithVehicleId);
+        console.log(`✅ Added ${addedImages.length} images to vehicle`);
+      }
+
       return NextResponse.json(
         {
           success: true,
           message: 'Vehicle updated successfully',
           vehicleId: updatedVehicle.id,
           action: 'updated',
+          imagesAdded: addedImages.length,
         },
         { status: 200 }
       );
@@ -149,12 +186,24 @@ export async function POST(request: NextRequest) {
 
       const result = await upsertVehicleByCrmId(payload.crmid, dataWithCrmId);
 
+      // Add images if provided
+      let addedImages: VehicleImage[] = [];
+      if (payload.images && payload.images.length > 0) {
+        const imagesWithVehicleId = payload.images.map((img) => ({
+          ...img,
+          vehicle_id: result.vehicle.id,
+        }));
+        addedImages = await addImagesToVehicle(result.vehicle.id, imagesWithVehicleId);
+        console.log(`✅ Added ${addedImages.length} images to vehicle`);
+      }
+
       return NextResponse.json(
         {
           success: true,
           message: `Vehicle ${result.action} successfully via CRM ID`,
           vehicleId: result.vehicle.id,
           action: result.action,
+          imagesAdded: addedImages.length,
         },
         { status: result.action === 'created' ? 201 : 200 }
       );

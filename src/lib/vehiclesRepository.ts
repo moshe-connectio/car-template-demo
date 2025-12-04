@@ -18,7 +18,17 @@ export type Vehicle = {
   fuel_type: string | null;
   main_image_url: string | null;
   short_description: string | null;
+  images: VehicleImage[] | null; // Array of up to 10 images
   raw_data: Record<string, unknown> | null;
+};
+
+export type VehicleImage = {
+  id: string;
+  vehicle_id: string;
+  image_url: string;
+  position: number; // 1-10, where 1 is primary image
+  alt_text: string | null;
+  uploaded_at: string;
 };
 
 export async function getPublishedVehicles(): Promise<Vehicle[]> {
@@ -28,11 +38,32 @@ export async function getPublishedVehicles(): Promise<Vehicle[]> {
     console.log('✅ Client created');
 
     console.log('🔍 Fetching published vehicles...');
-    const { data, error } = await client
+    // First try to fetch with images
+    const response = await client
       .from('vehicles')
-      .select('*')
+      .select(`
+        *,
+        images:vehicle_images(id, vehicle_id, image_url, position, alt_text, uploaded_at)
+      `)
       .eq('is_published', true)
       .order('created_at', { ascending: false });
+
+    let data = response.data;
+    let error = response.error;
+
+    // If the relationship doesn't exist yet, fall back to basic fetch
+    if (error && error.code === 'PGRST200') {
+      console.warn(
+        '⚠️ vehicle_images table not found or relationship not defined, falling back to basic fetch'
+      );
+      const fallbackResponse = await client
+        .from('vehicles')
+        .select('*')
+        .eq('is_published', true)
+        .order('created_at', { ascending: false });
+      data = fallbackResponse.data;
+      error = fallbackResponse.error;
+    }
 
     if (error) {
       console.error('❌ Error fetching published vehicles:', error);
@@ -51,12 +82,33 @@ export async function getVehicleBySlug(slug: string): Promise<Vehicle | null> {
   try {
     const client = createServerSupabaseClient();
 
-    const { data, error } = await client
+    const response = await client
       .from('vehicles')
-      .select('*')
+      .select(`
+        *,
+        images:vehicle_images(id, vehicle_id, image_url, position, alt_text, uploaded_at)
+      `)
       .eq('slug', slug)
       .eq('is_published', true)
       .single();
+
+    let data = response.data;
+    let error = response.error;
+
+    // If the relationship doesn't exist yet, fall back to basic fetch
+    if (error && error.code === 'PGRST200') {
+      console.warn(
+        '⚠️ vehicle_images table not found or relationship not defined, falling back to basic fetch'
+      );
+      const fallbackResponse = await client
+        .from('vehicles')
+        .select('*')
+        .eq('slug', slug)
+        .eq('is_published', true)
+        .single();
+      data = fallbackResponse.data;
+      error = fallbackResponse.error;
+    }
 
     if (error && error.code !== 'PGRST116') {
       console.error('Error fetching vehicle by slug:', error);
@@ -75,11 +127,31 @@ export async function getVehicleByCrmId(crmid: string): Promise<Vehicle | null> 
     console.log(`🔍 Fetching vehicle by CRM ID: ${crmid}`);
     const client = createServerSupabaseClient();
 
-    const { data, error } = await client
+    const response = await client
       .from('vehicles')
-      .select('*')
+      .select(`
+        *,
+        images:vehicle_images(id, vehicle_id, image_url, position, alt_text, uploaded_at)
+      `)
       .eq('crmid', crmid)
       .single();
+
+    let data = response.data;
+    let error = response.error;
+
+    // If the relationship doesn't exist yet, fall back to basic fetch
+    if (error && error.code === 'PGRST200') {
+      console.warn(
+        '⚠️ vehicle_images table not found or relationship not defined, falling back to basic fetch'
+      );
+      const fallbackResponse = await client
+        .from('vehicles')
+        .select('*')
+        .eq('crmid', crmid)
+        .single();
+      data = fallbackResponse.data;
+      error = fallbackResponse.error;
+    }
 
     if (error && error.code !== 'PGRST116') {
       console.error('Error fetching vehicle by CRM ID:', error);
@@ -111,7 +183,10 @@ export async function createVehicle(
     const { data, error } = await client
       .from('vehicles')
       .insert([vehicleData])
-      .select()
+      .select(`
+        *,
+        images:vehicle_images(id, vehicle_id, image_url, position, alt_text, uploaded_at)
+      `)
       .single();
 
     if (error) {
@@ -141,7 +216,10 @@ export async function updateVehicle(
       .from('vehicles')
       .update(vehicleData)
       .eq('id', id)
-      .select()
+      .select(`
+        *,
+        images:vehicle_images(id, vehicle_id, image_url, position, alt_text, uploaded_at)
+      `)
       .single();
 
     if (error) {
@@ -180,6 +258,161 @@ export async function upsertVehicleByCrmId(
     }
   } catch (err) {
     console.error('❌ Unexpected error in upsertVehicleByCrmId:', err);
+    throw err;
+  }
+}
+
+// Image Management Functions
+
+export type AddImageInput = Omit<VehicleImage, 'id' | 'uploaded_at'>;
+
+export async function getVehicleImages(
+  vehicleId: string
+): Promise<VehicleImage[]> {
+  try {
+    console.log(`🔍 Fetching images for vehicle ${vehicleId}`);
+    const client = createServerSupabaseClient();
+
+    const { data, error } = await client
+      .from('vehicle_images')
+      .select('*')
+      .eq('vehicle_id', vehicleId)
+      .order('position', { ascending: true });
+
+    if (error) {
+      console.error('❌ Error fetching vehicle images:', error);
+      throw new Error(`Failed to fetch vehicle images: ${error.message}`);
+    }
+
+    console.log(`✅ Found ${data?.length || 0} images for vehicle ${vehicleId}`);
+    return data ?? [];
+  } catch (err) {
+    console.error('❌ Unexpected error in getVehicleImages:', err);
+    throw err;
+  }
+}
+
+export async function addImagesToVehicle(
+  vehicleId: string,
+  images: AddImageInput[]
+): Promise<VehicleImage[]> {
+  try {
+    console.log(`🔍 Adding ${images.length} images to vehicle ${vehicleId}`);
+    const client = createServerSupabaseClient();
+
+    if (images.length === 0) {
+      console.log('ℹ️ No images to add');
+      return [];
+    }
+
+    // Validate positions are within 1-10 range
+    for (const img of images) {
+      if (img.position < 1 || img.position > 10) {
+        throw new Error(`Image position must be between 1 and 10, got ${img.position}`);
+      }
+    }
+
+    const { data, error } = await client
+      .from('vehicle_images')
+      .insert(images)
+      .select();
+
+    if (error) {
+      console.error('❌ Error adding images to vehicle:', error);
+      throw new Error(`Failed to add images: ${error.message}`);
+    }
+
+    console.log(`✅ Successfully added ${data?.length || 0} images to vehicle`);
+    return data ?? [];
+  } catch (err) {
+    console.error('❌ Unexpected error in addImagesToVehicle:', err);
+    throw err;
+  }
+}
+
+export async function updateVehicleImage(
+  imageId: string,
+  updates: Partial<Omit<VehicleImage, 'id' | 'vehicle_id' | 'uploaded_at'>>
+): Promise<VehicleImage> {
+  try {
+    console.log(`🔍 Updating image ${imageId}`);
+    const client = createServerSupabaseClient();
+
+    if (updates.position && (updates.position < 1 || updates.position > 10)) {
+      throw new Error(
+        `Image position must be between 1 and 10, got ${updates.position}`
+      );
+    }
+
+    const { data, error } = await client
+      .from('vehicle_images')
+      .update(updates)
+      .eq('id', imageId)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('❌ Error updating image:', error);
+      throw new Error(`Failed to update image: ${error.message}`);
+    }
+
+    console.log(`✅ Image updated successfully: ${imageId}`);
+    return data;
+  } catch (err) {
+    console.error('❌ Unexpected error in updateVehicleImage:', err);
+    throw err;
+  }
+}
+
+export async function deleteVehicleImage(imageId: string): Promise<void> {
+  try {
+    console.log(`🔍 Deleting image ${imageId}`);
+    const client = createServerSupabaseClient();
+
+    const { error } = await client
+      .from('vehicle_images')
+      .delete()
+      .eq('id', imageId);
+
+    if (error) {
+      console.error('❌ Error deleting image:', error);
+      throw new Error(`Failed to delete image: ${error.message}`);
+    }
+
+    console.log(`✅ Image deleted successfully: ${imageId}`);
+  } catch (err) {
+    console.error('❌ Unexpected error in deleteVehicleImage:', err);
+    throw err;
+  }
+}
+
+export async function reorderVehicleImages(
+  vehicleId: string,
+  imageOrder: { id: string; position: number }[]
+): Promise<VehicleImage[]> {
+  try {
+    console.log(`🔍 Reordering ${imageOrder.length} images for vehicle ${vehicleId}`);
+    const client = createServerSupabaseClient();
+
+    // Validate all positions
+    for (const item of imageOrder) {
+      if (item.position < 1 || item.position > 10) {
+        throw new Error(
+          `Image position must be between 1 and 10, got ${item.position}`
+        );
+      }
+    }
+
+    // Update all images in parallel
+    const updates = imageOrder.map((item) =>
+      updateVehicleImage(item.id, { position: item.position })
+    );
+
+    const results = await Promise.all(updates);
+    console.log(`✅ Successfully reordered ${results.length} images`);
+    return results;
+  } catch (err) {
+    console.error('❌ Unexpected error in reorderVehicleImages:', err);
     throw err;
   }
 }
