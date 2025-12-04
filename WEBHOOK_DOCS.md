@@ -44,7 +44,24 @@ Content-Type: application/json
       "transmission": "CVT",
       "features": ["Cruise Control", "Backup Camera", "Bluetooth"]
     }
-  }
+  },
+  "images": [
+    {
+      "image_url": "https://example.com/images/camry-front.jpg",
+      "position": 1,
+      "alt_text": "Front view of the vehicle"
+    },
+    {
+      "image_url": "https://example.com/images/camry-side.jpg",
+      "position": 2,
+      "alt_text": "Side view"
+    },
+    {
+      "image_url": "https://example.com/images/camry-interior.jpg",
+      "position": 3,
+      "alt_text": "Interior view"
+    }
+  ]
 }
 ```
 
@@ -58,7 +75,14 @@ Content-Type: application/json
     "price": 120000,
     "km": 5000,
     "is_published": true
-  }
+  },
+  "images": [
+    {
+      "image_url": "https://example.com/images/camry-new-photo.jpg",
+      "position": 4,
+      "alt_text": "New angle photo"
+    }
+  ]
 }
 ```
 
@@ -81,7 +105,19 @@ Content-Type: application/json
     "fuel_type": "Petrol",
     "main_image_url": "https://example.com/image.jpg",
     "short_description": "Beautiful Toyota Camry with low mileage"
-  }
+  },
+  "images": [
+    {
+      "image_url": "https://example.com/images/camry-1.jpg",
+      "position": 1,
+      "alt_text": "Front view"
+    },
+    {
+      "image_url": "https://example.com/images/camry-2.jpg",
+      "position": 2,
+      "alt_text": "Rear view"
+    }
+  ]
 }
 ```
 
@@ -145,6 +181,79 @@ For both create and update actions, you can include:
 - `short_description` (text) - Brief description of the vehicle
 - `raw_data` (jsonb) - Additional metadata as JSON object (any structure)
 
+---
+
+## Vehicle Images (Optional)
+
+You can attach up to 10 images to each vehicle. Images are stored separately and referenced by position (1-10).
+
+### Image Fields
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `image_url` | string | ✅ Yes | URL to the image |
+| `position` | integer | ✅ Yes | Position 1-10 (1 is the primary/main image) |
+| `alt_text` | string | No | Description for accessibility and SEO |
+
+### Image Guidelines
+
+- **Position 1**: Primary image (displayed first, used as thumbnail)
+- **Positions 2-10**: Secondary images
+- **Maximum 10 images** per vehicle
+- **Each position must be unique** per vehicle
+- **Image URLs must be valid** and publicly accessible
+- **Alt text is recommended** for accessibility and SEO
+
+### Example: Adding Images During Creation
+
+```json
+{
+  "action": "create",
+  "data": {
+    "slug": "bmw-x5-2023",
+    "title": "BMW X5 2023",
+    "brand": "BMW",
+    "model": "X5",
+    "year": 2023,
+    "price": 85000,
+    "is_published": true
+  },
+  "images": [
+    {
+      "image_url": "https://cdn.example.com/cars/bmw-x5/main.jpg",
+      "position": 1,
+      "alt_text": "BMW X5 2023 front view"
+    },
+    {
+      "image_url": "https://cdn.example.com/cars/bmw-x5/side.jpg",
+      "position": 2,
+      "alt_text": "BMW X5 2023 side view"
+    },
+    {
+      "image_url": "https://cdn.example.com/cars/bmw-x5/interior.jpg",
+      "position": 3,
+      "alt_text": "Interior view"
+    },
+    {
+      "image_url": "https://cdn.example.com/cars/bmw-x5/dashboard.jpg",
+      "position": 4,
+      "alt_text": "Dashboard and controls"
+    }
+  ]
+}
+```
+
+### Display in Frontend
+
+- Images are displayed in a gallery component with:
+  - **Primary image** shown as the main display
+  - **Thumbnail navigation** for secondary images (positions 2-10)
+  - **Smooth transitions** and hover effects
+  - **Image counter** showing total images per vehicle
+  - **Responsive design** that works on all devices
+
+---
+
 ## Auto-Generated Fields (Do Not Send)
 
 These fields are automatically managed by the database:
@@ -162,9 +271,18 @@ These fields are automatically managed by the database:
 {
   "success": true,
   "message": "Vehicle created successfully",
-  "vehicleId": "550e8400-e29b-41d4-a716-446655440000"
+  "vehicleId": "550e8400-e29b-41d4-a716-446655440000",
+  "action": "created",
+  "imagesAdded": 3
 }
 ```
+
+**Response Fields:**
+- `success` (boolean) - Whether the request was successful
+- `message` (string) - Human-readable status message
+- `vehicleId` (uuid) - The ID of the created/updated vehicle
+- `action` (string) - "created", "updated", or "upsert" result
+- `imagesAdded` (integer) - Number of images successfully added (only if images were provided)
 
 ### Error Response (400, 500)
 
