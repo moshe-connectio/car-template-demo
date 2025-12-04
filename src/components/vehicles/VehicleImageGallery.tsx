@@ -58,7 +58,7 @@ export default function VehicleImageGallery({
           {/* Primary image thumbnail */}
           <button
             onClick={() => setSelectedImageIndex(0)}
-            className={`relative w-20 h-20 rounded-lg overflow-hidden flex-shrink-0 transition-all duration-200 border-2 ${
+            className={`relative w-20 h-20 rounded-lg overflow-hidden shrink-0 transition-all duration-200 border-2 ${
               selectedImageIndex === 0
                 ? 'border-primary-600 ring-2 ring-primary-400'
                 : 'border-gray-300 hover:border-gray-400'
@@ -82,7 +82,7 @@ export default function VehicleImageGallery({
             <button
               key={image.id}
               onClick={() => setSelectedImageIndex(index + 1)}
-              className={`relative w-20 h-20 rounded-lg overflow-hidden flex-shrink-0 transition-all duration-200 border-2 ${
+              className={`relative w-20 h-20 rounded-lg overflow-hidden shrink-0 transition-all duration-200 border-2 ${
                 selectedImageIndex === index + 1
                   ? 'border-primary-600 ring-2 ring-primary-400'
                   : 'border-gray-300 hover:border-gray-400'
