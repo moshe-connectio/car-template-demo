@@ -419,26 +419,26 @@ export async function reorderVehicleImages(
 
 /**
  * Delete vehicles that have been marked as sold (is_published = false)
- * and were updated more than 1 day ago
+ * and were updated more than 2 days ago
  */
 export async function deleteSoldVehicles(): Promise<number> {
   try {
-    console.log('🗑️ Cleaning up sold vehicles older than 1 day...');
+    console.log('🗑️ Cleaning up sold vehicles older than 2 days...');
     const client = createServerSupabaseClient();
 
-    // Calculate the date from 1 day ago
-    const oneDayAgo = new Date();
-    oneDayAgo.setDate(oneDayAgo.getDate() - 1);
-    const oneDayAgoISO = oneDayAgo.toISOString();
+    // Calculate the date from 2 days ago
+    const twoDaysAgo = new Date();
+    twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
+    const twoDaysAgoISO = twoDaysAgo.toISOString();
 
-    console.log(`🔍 Looking for vehicles marked as sold before ${oneDayAgoISO}`);
+    console.log(`🔍 Looking for vehicles marked as sold before ${twoDaysAgoISO}`);
 
-    // Delete vehicles that are not published and were updated more than 1 day ago
+    // Delete vehicles that are not published and were updated more than 2 days ago
     const response = await client
       .from('vehicles')
       .delete()
       .eq('is_published', false)
-      .lt('updated_at', oneDayAgoISO);
+      .lt('updated_at', twoDaysAgoISO);
 
     if (response.error) {
       console.error('❌ Error deleting sold vehicles:', response.error);
