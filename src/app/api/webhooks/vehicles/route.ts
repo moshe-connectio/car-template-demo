@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { createServerSupabaseClient } from '@/lib/supabaseServerClient';
 import { 
   upsertVehicleByCrmId,
   addImagesToVehicle,
@@ -6,6 +7,7 @@ import {
   AddImageInput,
   VehicleImage,
 } from '@/lib/vehiclesRepository';
+import { generateVehicleSlug, extractIdFromSlug } from '@/lib/utils';
 
 /**
  * Webhook endpoint for creating/updating vehicles and their images
@@ -54,6 +56,142 @@ type WebhookPayload = {
   data: CreateVehicleInput;
   images?: AddImageInput[];
 };
+
+/**
+ * Download image from URL and return as Buffer
+ */
+async function downloadImage(imageUrl: string): Promise<Buffer> {
+  try {
+    const response = await fetch(imageUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to download image: ${response.statusText}`);
+    }
+
+    const arrayBuffer = await response.arrayBuffer();
+    return Buffer.from(arrayBuffer);
+  } catch (error) {
+    console.error(`❌ Error downloading image from ${imageUrl}:`, error);
+    throw error;
+  }
+}
+
+/**
+ * Upload image buffer to Supabase Storage
+ */
+async function uploadImageToSupabase(
+  imageBuffer: Buffer,
+  vehicleSlug: string,
+  vehicleId: string,
+  position: number,
+  originalFileName: string
+): Promise<string> {
+  try {
+    const client = createServerSupabaseClient();
+
+    // Extract ID suffix from vehicle ID (last 8 chars)
+    const idSuffix = vehicleId.slice(-8);
+
+    // Create folder path: vehicles/{slug}-{idSuffix}/
+    const folderPath = `vehicles/${vehicleSlug}-${idSuffix}`;
+
+    // Generate unique filename: position-{timestamp}-{originalName}
+    const timestamp = Date.now();
+    const ext = originalFileName.split('.').pop() || 'jpg';
+    const fileName = `${position}-${timestamp}.${ext}`;
+    const filePath = `${folderPath}/${fileName}`;
+
+    console.log(`📤 Uploading image to: ${filePath}`);
+
+    const { data, error } = await client.storage
+      .from('vehicle-images')
+      .upload(filePath, imageBuffer, {
+        contentType: 'image/jpeg',
+        upsert: false,
+      });
+
+    if (error) {
+      throw new Error(`Supabase upload error: ${error.message}`);
+    }
+
+    // Get public URL
+    const { data: publicUrlData } = client.storage
+      .from('vehicle-images')
+      .getPublicUrl(filePath);
+
+    const publicUrl = publicUrlData.publicUrl;
+    console.log(`✅ Image uploaded successfully: ${publicUrl}`);
+
+    return publicUrl;
+  } catch (error) {
+    console.error(`❌ Error uploading image to Supabase:`, error);
+    throw error;
+  }
+}
+
+/**
+ * Process and upload images from webhook
+ */
+async function processAndUploadImages(
+  vehicleId: string,
+  vehicleSlug: string,
+  images: (AddImageInput & { image_url: string })[]
+): Promise<VehicleImage[]> {
+  const uploadedImages: VehicleImage[] = [];
+
+  for (const img of images) {
+    try {
+      console.log(`🖼️ Processing image at position ${img.position}: ${img.image_url}`);
+
+      // Skip if URL is base64
+      if (img.image_url.startsWith('data:image/')) {
+        console.warn(`⚠️ Skipping base64 image at position ${img.position}`);
+        continue;
+      }
+
+      // Download image
+      console.log(`⬇️ Downloading image from: ${img.image_url}`);
+      const imageBuffer = await downloadImage(img.image_url);
+
+      // Extract filename from URL
+      const urlObj = new URL(img.image_url);
+      const originalFileName = urlObj.pathname.split('/').pop() || 'image';
+
+      // Upload to Supabase Storage
+      const supabaseUrl = await uploadImageToSupabase(
+        imageBuffer,
+        vehicleSlug,
+        vehicleId,
+        img.position,
+        originalFileName
+      );
+
+      // Add to database with new Supabase URL
+      uploadedImages.push({
+        vehicle_id: vehicleId,
+        image_url: supabaseUrl,
+        position: img.position,
+        alt_text: img.alt_text || null,
+      } as VehicleImage);
+    } catch (error) {
+      console.error(`❌ Failed to process image at position ${img.position}:`, error);
+      // Continue with next image instead of failing entire webhook
+      continue;
+    }
+  }
+
+  // Add all successfully uploaded images to database
+  if (uploadedImages.length > 0) {
+    const addedImages = await addImagesToVehicle(vehicleId, uploadedImages);
+    return addedImages;
+  }
+
+  return [];
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -131,29 +269,33 @@ export async function POST(request: NextRequest) {
 
     console.log(`✅ Vehicle ${result.action === 'created' ? 'created' : 'updated'}: ${result.vehicle.id}`);
 
-    // Add images if provided
+    // Add images if provided - download, upload to Supabase Storage, and save URLs
     let addedImages: VehicleImage[] = [];
     if (payload.images && payload.images.length > 0) {
-      const processedImages: AddImageInput[] = [];
-
-      // Process each image - only accept external URLs
-      for (const img of payload.images) {
-        // Skip base64 images (not supported in serverless environment)
-        if (img.image_url.startsWith('data:image/')) {
-          console.warn(`⚠️ Skipping base64 image at position ${img.position} - only external URLs are supported`);
-          continue;
-        }
-
-        processedImages.push({
-          ...img,
-          vehicle_id: result.vehicle.id,
-          image_url: img.image_url,
+      try {
+        console.log(`📸 Processing ${payload.images.length} images...`);
+        
+        // Filter valid images
+        const validImages = payload.images.filter(img => {
+          if (img.image_url.startsWith('data:image/')) {
+            console.warn(`⚠️ Skipping base64 image at position ${img.position}`);
+            return false;
+          }
+          return true;
         });
-      }
 
-      if (processedImages.length > 0) {
-        addedImages = await addImagesToVehicle(result.vehicle.id, processedImages);
-        console.log(`✅ Added ${addedImages.length} images to vehicle`);
+        if (validImages.length > 0) {
+          addedImages = await processAndUploadImages(
+            result.vehicle.id,
+            createData.slug,
+            validImages
+          );
+          console.log(`✅ Added ${addedImages.length} images to vehicle`);
+        }
+      } catch (error) {
+        console.error('❌ Error processing images:', error);
+        // Don't fail the entire webhook if image processing fails
+        // The vehicle was created successfully
       }
     }
 
