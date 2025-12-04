@@ -1,4 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { writeFile, mkdir } from 'fs/promises';
+import { join } from 'path';
+import { existsSync } from 'fs';
 import { 
   createVehicle, 
   updateVehicle, 
@@ -9,6 +12,47 @@ import {
   AddImageInput,
   VehicleImage,
 } from '@/lib/vehiclesRepository';
+
+/**
+ * Helper function to save base64 image to disk
+ */
+async function saveBase64Image(
+  base64Data: string,
+  vehicleId: string,
+  position: number
+): Promise<string> {
+  try {
+    // Extract base64 content (remove data:image/...;base64, prefix if present)
+    const base64Str = base64Data.includes(',') ? base64Data.split(',')[1] : base64Data;
+    
+    // Determine file extension from base64 header if available
+    let ext = 'jpg';
+    if (base64Data.includes('data:image/png')) ext = 'png';
+    else if (base64Data.includes('data:image/webp')) ext = 'webp';
+    else if (base64Data.includes('data:image/gif')) ext = 'gif';
+
+    // Create directory structure
+    const vehicleDir = join(process.cwd(), 'public/vehicles/images', vehicleId);
+    if (!existsSync(vehicleDir)) {
+      await mkdir(vehicleDir, { recursive: true });
+    }
+
+    // Generate filename
+    const filename = `image-${position}.${ext}`;
+    const filepath = join(vehicleDir, filename);
+    const relativePath = `/vehicles/images/${vehicleId}/${filename}`;
+
+    // Convert base64 to buffer and save
+    const buffer = Buffer.from(base64Str, 'base64');
+    await writeFile(filepath, buffer);
+
+    console.log(`✅ Image saved: ${relativePath}`);
+    return relativePath;
+  } catch (err) {
+    console.error('❌ Error saving base64 image:', err);
+    throw new Error(`Failed to save image: ${err instanceof Error ? err.message : 'Unknown error'}`);
+  }
+}
 
 /**
  * Webhook endpoint for creating/updating vehicles and their images
@@ -27,7 +71,7 @@ import {
  *   "crmid": "string",    // Optional for create, required for upsert
  *   "images": [           // Optional for all actions
  *     {
- *       "image_url": "https://...",
+ *       "image_url": "https://..." OR "data:image/jpeg;base64,...",
  *       "position": 1,    // 1-10 (1 is primary image)
  *       "alt_text": "Car image description"
  *     }
@@ -101,11 +145,26 @@ export async function POST(request: NextRequest) {
       // Add images if provided
       let addedImages: VehicleImage[] = [];
       if (payload.images && payload.images.length > 0) {
-        const imagesWithVehicleId = payload.images.map((img) => ({
-          ...img,
-          vehicle_id: newVehicle.id,
-        }));
-        addedImages = await addImagesToVehicle(newVehicle.id, imagesWithVehicleId);
+        const processedImages: AddImageInput[] = [];
+
+        // Process each image (handle both URLs and base64)
+        for (const img of payload.images) {
+          let finalImageUrl = img.image_url;
+
+          // If it's a base64 image, save it to disk
+          if (img.image_url.startsWith('data:image/')) {
+            console.log(`📸 Saving base64 image at position ${img.position}...`);
+            finalImageUrl = await saveBase64Image(img.image_url, newVehicle.id, img.position);
+          }
+
+          processedImages.push({
+            ...img,
+            vehicle_id: newVehicle.id,
+            image_url: finalImageUrl,
+          });
+        }
+
+        addedImages = await addImagesToVehicle(newVehicle.id, processedImages);
         console.log(`✅ Added ${addedImages.length} images to new vehicle`);
       }
 
@@ -137,11 +196,26 @@ export async function POST(request: NextRequest) {
       // Add images if provided
       let addedImages: VehicleImage[] = [];
       if (payload.images && payload.images.length > 0) {
-        const imagesWithVehicleId = payload.images.map((img) => ({
-          ...img,
-          vehicle_id: payload.vehicleId,
-        }));
-        addedImages = await addImagesToVehicle(payload.vehicleId, imagesWithVehicleId);
+        const processedImages: AddImageInput[] = [];
+
+        // Process each image (handle both URLs and base64)
+        for (const img of payload.images) {
+          let finalImageUrl = img.image_url;
+
+          // If it's a base64 image, save it to disk
+          if (img.image_url.startsWith('data:image/')) {
+            console.log(`📸 Saving base64 image at position ${img.position}...`);
+            finalImageUrl = await saveBase64Image(img.image_url, payload.vehicleId, img.position);
+          }
+
+          processedImages.push({
+            ...img,
+            vehicle_id: payload.vehicleId,
+            image_url: finalImageUrl,
+          });
+        }
+
+        addedImages = await addImagesToVehicle(payload.vehicleId, processedImages);
         console.log(`✅ Added ${addedImages.length} images to vehicle`);
       }
 
@@ -189,11 +263,26 @@ export async function POST(request: NextRequest) {
       // Add images if provided
       let addedImages: VehicleImage[] = [];
       if (payload.images && payload.images.length > 0) {
-        const imagesWithVehicleId = payload.images.map((img) => ({
-          ...img,
-          vehicle_id: result.vehicle.id,
-        }));
-        addedImages = await addImagesToVehicle(result.vehicle.id, imagesWithVehicleId);
+        const processedImages: AddImageInput[] = [];
+
+        // Process each image (handle both URLs and base64)
+        for (const img of payload.images) {
+          let finalImageUrl = img.image_url;
+
+          // If it's a base64 image, save it to disk
+          if (img.image_url.startsWith('data:image/')) {
+            console.log(`📸 Saving base64 image at position ${img.position}...`);
+            finalImageUrl = await saveBase64Image(img.image_url, result.vehicle.id, img.position);
+          }
+
+          processedImages.push({
+            ...img,
+            vehicle_id: result.vehicle.id,
+            image_url: finalImageUrl,
+          });
+        }
+
+        addedImages = await addImagesToVehicle(result.vehicle.id, processedImages);
         console.log(`✅ Added ${addedImages.length} images to vehicle`);
       }
 
