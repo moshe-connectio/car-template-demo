@@ -1,21 +1,29 @@
-import { getPublishedVehicles, deleteSoldVehicles, Vehicle } from '@/lib/vehiclesRepository';
+import { getPublishedVehicles, deleteSoldVehicles, getUniqueBrands, getUniqueCategories, Vehicle } from '@/lib/vehiclesRepository';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { Container } from '@/components/layout/Container';
-import { VehicleGrid } from '@/components/vehicles/VehicleGrid';
+import { FilterableVehicleGrid } from '@/components/vehicles/FilterableVehicleGrid';
 
 export const revalidate = 60; // ISR - 1 minute
 
 export default async function VehiclesPage() {
   let vehicles: Vehicle[] = [];
+  let brands: string[] = [];
+  let categories: string[] = [];
   let error: string | null = null;
 
   try {
-    // Clean up sold vehicles older than 1 day
+    // Clean up sold vehicles older than 2 days
     await deleteSoldVehicles();
     
     // Fetch published vehicles
     vehicles = await getPublishedVehicles();
+    // Filter only published vehicles (not sold)
+    vehicles = vehicles.filter(v => v.is_published);
+
+    // Get unique brands and categories for filters
+    brands = await getUniqueBrands();
+    categories = await getUniqueCategories();
   } catch (err) {
     console.error('Failed to load vehicles:', err);
     error = 'שגיאה בטעינת הרכבים. אנא נסה שוב מאוחר יותר.';
@@ -70,7 +78,11 @@ export default async function VehiclesPage() {
             </div>
           )}
 
-          <VehicleGrid vehicles={vehicles} />
+          <FilterableVehicleGrid 
+            vehicles={vehicles}
+            brands={brands}
+            categories={categories}
+          />
         </Container>
       </main>
 

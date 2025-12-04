@@ -16,6 +16,7 @@ export type Vehicle = {
   km: number | null;
   gear_type: string | null;
   fuel_type: string | null;
+  categories: string[]; // Vehicle categories (e.g., ["SUV", "4x4", "יוקרה"], etc.)
   main_image_url: string | null;
   short_description: string | null;
   images: VehicleImage[] | null; // Array of up to 10 images
@@ -536,5 +537,52 @@ export async function deleteSoldVehicles(): Promise<number> {
   } catch (err) {
     console.error('❌ Unexpected error in deleteSoldVehicles:', err);
     throw err;
+  }
+}
+
+/**
+ * Get unique list of vehicle brands
+ */
+export async function getUniqueBrands(): Promise<string[]> {
+  try {
+    const vehicles = await getPublishedVehicles();
+    const brands = [...new Set(vehicles.map(v => v.brand).filter((b): b is string => Boolean(b)))];
+    return brands.sort();
+  } catch (err) {
+    console.error('Error fetching unique brands:', err);
+    return [];
+  }
+}
+
+/**
+ * Get unique list of vehicle models for a specific brand
+ */
+export async function getUniqueModels(brand?: string): Promise<string[]> {
+  try {
+    const vehicles = await getPublishedVehicles();
+    const filteredVehicles = brand 
+      ? vehicles.filter(v => v.brand === brand)
+      : vehicles;
+    const models = [...new Set(filteredVehicles.map(v => v.model).filter((m): m is string => Boolean(m)))];
+    return models.sort();
+  } catch (err) {
+    console.error('Error fetching unique models:', err);
+    return [];
+  }
+}
+
+/**
+ * Get unique list of vehicle categories
+ */
+export async function getUniqueCategories(): Promise<string[]> {
+  try {
+    const vehicles = await getPublishedVehicles();
+    // Flatten all categories from all vehicles and get unique ones
+    const allCategories = vehicles.flatMap(v => v.categories || []);
+    const uniqueCategories = [...new Set(allCategories)];
+    return uniqueCategories.sort();
+  } catch (err) {
+    console.error('Error fetching unique categories:', err);
+    return [];
   }
 }

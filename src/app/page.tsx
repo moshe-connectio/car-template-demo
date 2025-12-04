@@ -13,6 +13,8 @@ export default async function HomePage() {
 
   try {
     vehicles = await getPublishedVehicles();
+    // Filter only published vehicles (not sold) for home page
+    vehicles = vehicles.filter(v => v.is_published);
   } catch (err) {
     console.error('Failed to load vehicles:', err);
     error = 'שגיאה בטעינת הרכבים. אנא נסה שוב מאוחר יותר.';

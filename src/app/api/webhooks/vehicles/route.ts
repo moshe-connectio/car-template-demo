@@ -24,6 +24,7 @@ import {
  *     "price": 45000,
  *     "is_published": true,
  *     // Optional fields
+ *     "categories": ["חשמלי", "8 מושבים", "SUV"],    // Array of categories. Options: SUV, סדאן, האצ'בק, מיני ואן, קופה, קרוסאובר, טנדר, ספורט, חשמלי, היברידי, 4x4, יוקרה, משפחתית, מנהלים, 8 מושבים
  *     "km": 50000,
  *     "gear_type": "automatic",
  *     "fuel_type": "electric",
