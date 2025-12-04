@@ -105,14 +105,6 @@ export default function VehicleDetailPage({ params }: VehicleDetailPageProps) {
     );
   }
 
-  // Sort images by position, fallback to first image
-  const sortedImages = vehicle.images && vehicle.images.length > 0
-    ? [...vehicle.images].sort((a, b) => a.position - b.position)
-    : [];
-
-  const selectedImage = sortedImages[selectedImageIndex];
-  const mainImageUrl = selectedImage?.image_url || vehicle.main_image_url;
-
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Header />
