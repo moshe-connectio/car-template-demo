@@ -80,20 +80,45 @@ export async function POST(request: NextRequest) {
     const payload = body as WebhookPayload;
     const createData = payload.data as CreateVehicleInput;
 
-    // Validate required fields
-    const requiredFields = ['slug', 'title', 'brand', 'model', 'year', 'price'];
-    const missingFields = requiredFields.filter((field) => !(field in createData));
+    console.log(`🔄 Processing webhook for crmid: ${payload.crmid}`);
+    console.log(`📋 is_published: ${createData.is_published}`);
 
-    if (missingFields.length > 0) {
+    // Special handling for marking as sold (is_published = false)
+    // If is_published is false, only update that field without requiring other data
+    if (createData.is_published === false) {
+      console.log(`🔴 Vehicle marked as sold: ${payload.crmid}`);
+      
+      const result = await upsertVehicleByCrmId(payload.crmid, {
+        ...createData,
+        crmid: payload.crmid,
+        // Only update is_published, keep other fields unchanged
+      });
+
+      return NextResponse.json(
+        {
+          success: true,
+          message: 'Vehicle marked as sold',
+          vehicleId: result.vehicle.id,
+          action: 'sold',
+          imagesAdded: 0,
+        },
+        { status: 200 }
+      );
+    }
+
+    // Normal upsert for creating/updating vehicles with full data
+    // Validate required fields only for non-sold vehicles
+    const requiredFieldsForCreate = ['slug', 'title', 'brand', 'model', 'year', 'price'];
+    const missingRequiredFields = requiredFieldsForCreate.filter((field) => !(field in createData));
+
+    if (missingRequiredFields.length > 0) {
       return NextResponse.json(
         { 
-          error: `Missing required fields: ${missingFields.join(', ')}` 
+          error: `Missing required fields: ${missingRequiredFields.join(', ')}` 
         },
         { status: 400 }
       );
     }
-
-    console.log(`🔄 Upserting vehicle with crmid: ${payload.crmid}`);
 
     // Always use upsert by crmid
     // If the vehicle exists (same crmid), it will be updated
