@@ -56,6 +56,29 @@ Content-Type: application/json
 }
 ```
 
+#### Upsert Vehicle (Create or Update by CRM ID)
+
+```json
+{
+  "action": "upsert",
+  "crmid": "ZOHO-DEAL-12345",
+  "data": {
+    "slug": "toyota-camry-2024",
+    "title": "Toyota Camry 2024",
+    "brand": "Toyota",
+    "model": "Camry",
+    "year": 2024,
+    "price": 125000,
+    "is_published": true,
+    "km": 0,
+    "gear_type": "Automatic",
+    "fuel_type": "Petrol",
+    "main_image_url": "https://example.com/image.jpg",
+    "short_description": "Beautiful Toyota Camry with low mileage"
+  }
+}
+```
+
 ---
 
 ## Required Fields
@@ -72,6 +95,10 @@ Content-Type: application/json
 ### Update Action
 - `vehicleId` (uuid) - The vehicle ID to update
 - At least one field in `data` object to update
+
+### Upsert Action
+- `crmid` (text) - The CRM ID to identify the vehicle
+- All required fields from Create Action (slug, title, brand, model, year, price, is_published) - only needed if creating new vehicle
 
 ---
 
@@ -113,29 +140,48 @@ For both create and update actions, you can include:
 
 ## Examples
 
-### cURL - Create Vehicle
+### cURL - Update Vehicle
 
 ```bash
 curl -X POST https://car-template-demo.vercel.app/api/webhooks/vehicles \
   -H "Content-Type: application/json" \
   -d '{
-    "action": "create",
+    "action": "update",
+    "vehicleId": "550e8400-e29b-41d4-a716-446655440000",
     "data": {
-      "slug": "honda-civic-2024",
-      "title": "Honda Civic 2024",
-      "brand": "Honda",
-      "model": "Civic",
-      "year": 2024,
-      "price": 95000,
-      "is_published": true,
-      "km": 0,
-      "gear_type": "Automatic",
-      "fuel_type": "Petrol",
-      "main_image_url": "https://example.com/civic.jpg",
-      "short_description": "New Honda Civic with warranty"
+      "price": 90000,
+      "km": 1000
     }
   }'
 ```
+
+### cURL - Upsert Vehicle (via CRM ID)
+
+Creates or updates vehicle based on CRM ID:
+
+```bash
+curl -X POST https://car-template-demo.vercel.app/api/webhooks/vehicles \
+  -H "Content-Type: application/json" \
+  -d '{
+    "action": "upsert",
+    "crmid": "ZOHO-DEAL-12345",
+    "data": {
+      "slug": "ford-mustang-2024",
+      "title": "Ford Mustang 2024",
+      "brand": "Ford",
+      "model": "Mustang",
+      "year": 2024,
+      "price": 180000,
+      "is_published": true,
+      "km": 0,
+      "gear_type": "Automatic",
+      "fuel_type": "Petrol"
+    }
+  }'
+```
+
+**First time?** Returns 201 with action: "created"  
+**Already exists?** Returns 200 with action: "updated"
 
 ### cURL - Update Vehicle
 
@@ -176,7 +222,29 @@ async function createVehicle(vehicleData) {
   return result;
 }
 
-// Usage
+async function upsertVehicle(crmid, vehicleData) {
+  const response = await fetch('https://car-template-demo.vercel.app/api/webhooks/vehicles', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      action: 'upsert',
+      crmid: crmid,
+      data: vehicleData,
+    }),
+  });
+
+  const result = await response.json();
+  
+  if (!response.ok) {
+    throw new Error(result.error);
+  }
+
+  return result;
+}
+
+// Usage - Create
 createVehicle({
   slug: 'bmw-x5-2024',
   title: 'BMW X5 2024',
@@ -186,6 +254,19 @@ createVehicle({
   price: 250000,
   is_published: true,
 }).then(console.log).catch(console.error);
+
+// Usage - Upsert (will create or update based on CRM ID)
+upsertVehicle('ZOHO-DEAL-12345', {
+  slug: 'bmw-x5-2024',
+  title: 'BMW X5 2024',
+  brand: 'BMW',
+  model: 'X5',
+  year: 2024,
+  price: 250000,
+  is_published: true,
+}).then(result => {
+  console.log(`Vehicle ${result.action}: ${result.vehicleId}`);
+}).catch(console.error);
 ```
 
 ### Python
@@ -210,7 +291,24 @@ def create_vehicle(vehicle_data):
     
     return result
 
-# Usage
+def upsert_vehicle(crmid, vehicle_data):
+    url = 'https://car-template-demo.vercel.app/api/webhooks/vehicles'
+    
+    payload = {
+        'action': 'upsert',
+        'crmid': crmid,
+        'data': vehicle_data
+    }
+    
+    response = requests.post(url, json=payload)
+    result = response.json()
+    
+    if response.status_code not in [200, 201]:
+        raise Exception(result.get('error'))
+    
+    return result
+
+# Usage - Create
 vehicle = {
     'slug': 'mercedes-benz-c-class-2024',
     'title': 'Mercedes-Benz C-Class 2024',
@@ -224,6 +322,10 @@ vehicle = {
 
 result = create_vehicle(vehicle)
 print(f"Created vehicle: {result['vehicleId']}")
+
+# Usage - Upsert (will create or update based on CRM ID)
+result = upsert_vehicle('ZOHO-DEAL-12345', vehicle)
+print(f"Vehicle {result['action']}: {result['vehicleId']}")
 ```
 
 ---
@@ -271,16 +373,24 @@ curl -X POST http://localhost:3000/api/webhooks/vehicles \
 
 ## Integration with Zoho CRM (Future)
 
-Once Zoho CRM integration is implemented, webhooks can be triggered automatically when:
-- A new deal is won
-- Vehicle information is updated
+The `crmid` field enables seamless integration with Zoho CRM. Once Zoho integration is set up, webhooks can be triggered automatically when:
+- A new deal is won (creates a new vehicle)
+- Vehicle information is updated in Zoho (updates the vehicle record)
 - Inventory status changes
 
+### How it works:
+
+1. **First webhook from Zoho** with a new `crmid` → Vehicle is created in Supabase
+2. **Second webhook from Zoho** with the same `crmid` → Vehicle is updated instead of duplicated
+3. **Demo page automatically revalidates** (ISR) → Latest changes appear on the website
+
 Example integration flow:
-1. Zoho CRM sends webhook to `/api/webhooks/vehicles`
-2. Vehicle data is created/updated in Supabase
-3. Next.js ISR revalidates the demo page
-4. Updated vehicles appear on the website automatically
+1. Sales closes deal in Zoho CRM (e.g., `ZOHO-DEAL-67890`)
+2. Zoho sends webhook to `/api/webhooks/vehicles` with action: "upsert" and crmid
+3. Vehicle is created in Supabase with the crmid
+4. Next.js ISR revalidates the demo page
+5. Updated vehicles appear on the website automatically
+6. If the deal is updated in Zoho, webhook is sent again with same crmid → vehicle updates instead of duplicates
 
 ---
 

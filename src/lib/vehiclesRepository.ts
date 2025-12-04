@@ -6,6 +6,7 @@ export type Vehicle = {
   updated_at: string;
   is_published: boolean;
   external_id: string | null;
+  crmid: string | null;
   slug: string;
   title: string;
   brand: string;
@@ -69,6 +70,35 @@ export async function getVehicleBySlug(slug: string): Promise<Vehicle | null> {
   }
 }
 
+export async function getVehicleByCrmId(crmid: string): Promise<Vehicle | null> {
+  try {
+    console.log(`🔍 Fetching vehicle by CRM ID: ${crmid}`);
+    const client = createServerSupabaseClient();
+
+    const { data, error } = await client
+      .from('vehicles')
+      .select('*')
+      .eq('crmid', crmid)
+      .single();
+
+    if (error && error.code !== 'PGRST116') {
+      console.error('Error fetching vehicle by CRM ID:', error);
+      throw new Error(`Failed to fetch vehicle: ${error.message}`);
+    }
+
+    if (data) {
+      console.log(`✅ Found vehicle with CRM ID: ${data.id}`);
+    } else {
+      console.log(`ℹ️ No vehicle found with CRM ID: ${crmid}`);
+    }
+
+    return data ?? null;
+  } catch (err) {
+    console.error('Unexpected error in getVehicleByCrmId:', err);
+    throw err;
+  }
+}
+
 export type CreateVehicleInput = Omit<Vehicle, 'id' | 'created_at' | 'updated_at'>;
 
 export async function createVehicle(
@@ -123,6 +153,33 @@ export async function updateVehicle(
     return data;
   } catch (err) {
     console.error('❌ Unexpected error in updateVehicle:', err);
+    throw err;
+  }
+}
+
+export async function upsertVehicleByCrmId(
+  crmid: string,
+  vehicleData: CreateVehicleInput
+): Promise<{ vehicle: Vehicle; action: 'created' | 'updated' }> {
+  try {
+    console.log(`🔄 Upserting vehicle with CRM ID: ${crmid}`);
+
+    // Check if vehicle exists
+    const existingVehicle = await getVehicleByCrmId(crmid);
+
+    if (existingVehicle) {
+      // Update existing vehicle
+      console.log(`✏️ Vehicle exists, updating it...`);
+      const updatedVehicle = await updateVehicle(existingVehicle.id, vehicleData);
+      return { vehicle: updatedVehicle, action: 'updated' };
+    } else {
+      // Create new vehicle
+      console.log(`📝 Vehicle does not exist, creating it...`);
+      const newVehicle = await createVehicle(vehicleData);
+      return { vehicle: newVehicle, action: 'created' };
+    }
+  } catch (err) {
+    console.error('❌ Unexpected error in upsertVehicleByCrmId:', err);
     throw err;
   }
 }
