@@ -1,4 +1,5 @@
 import { Vehicle } from '@/lib/vehiclesRepository';
+import { formatPrice, formatKilometers } from '@/lib/utils';
 
 interface VehicleCardProps {
   vehicle: Vehicle;
@@ -37,7 +38,7 @@ export function VehicleCard({ vehicle }: VehicleCardProps) {
         
         {/* Status Badge */}
         {vehicle.km !== null && vehicle.km === 0 && (
-          <div className="absolute top-3 left-3 bg-green-500 text-white text-xs font-semibold px-3 py-1 rounded-full shadow-lg">
+          <div className="absolute top-3 left-3 bg-success text-white text-xs font-semibold px-3 py-1 rounded-full shadow-lg">
             חדש מהאפס
           </div>
         )}
@@ -46,7 +47,7 @@ export function VehicleCard({ vehicle }: VehicleCardProps) {
       {/* Content Section */}
       <div className="p-5">
         {/* Title */}
-        <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
+        <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-primary transition-colors">
           {vehicle.title}
         </h3>
 
@@ -62,7 +63,7 @@ export function VehicleCard({ vehicle }: VehicleCardProps) {
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
               </svg>
-              <span>{vehicle.km.toLocaleString('he-IL')} ק״מ</span>
+              <span>{formatKilometers(vehicle.km)}</span>
             </div>
           )}
           
@@ -95,10 +96,10 @@ export function VehicleCard({ vehicle }: VehicleCardProps) {
         {/* Price */}
         <div className="pt-4 border-t border-gray-100">
           <div className="flex items-center justify-between">
-            <span className="text-2xl font-bold text-green-600">
-              ₪{vehicle.price.toLocaleString('he-IL')}
+            <span className="text-2xl font-bold text-success">
+              {formatPrice(vehicle.price)}
             </span>
-            <span className="text-blue-600 group-hover:translate-x-1 transition-transform inline-flex items-center gap-1">
+            <span className="text-primary group-hover:translate-x-1 transition-transform inline-flex items-center gap-1">
               פרטים
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />

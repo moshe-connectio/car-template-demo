@@ -23,15 +23,34 @@ A reusable website template for car dealerships and other automotive businesses 
 ```
 src/
 ├── app/
-│   ├── globals.css
+│   ├── globals.css                    # Global styles with design system CSS variables
 │   ├── layout.tsx
 │   ├── page.tsx
-│   └── demo/
-│       └── vehicles/
-│           └── page.tsx          # Demo page showing vehicles from DB
+│   ├── api/
+│   │   └── webhooks/
+│   │       └── vehicles/
+│   │           └── route.ts           # Webhook API for external integrations
+│   ├── demo/
+│   │   └── vehicles/
+│   │       └── page.tsx               # Demo page showing vehicles from DB
+│   └── vehicles/
+│       └── page.tsx                   # Main vehicles page with ISR
+├── components/
+│   ├── layout/
+│   │   ├── Container.tsx              # Reusable container wrapper
+│   │   ├── Header.tsx                 # Site header with navigation
+│   │   └── Footer.tsx                 # Site footer with contact info
+│   └── vehicles/
+│       ├── VehicleCard.tsx            # Individual vehicle card component
+│       └── VehicleGrid.tsx            # Responsive grid with empty state
 ├── lib/
-│   ├── supabaseServerClient.ts   # Server-side Supabase client
-│   └── vehiclesRepository.ts     # Vehicles data access layer
+│   ├── supabaseServerClient.ts        # Server-side Supabase client
+│   ├── vehiclesRepository.ts          # Vehicles data access layer
+│   ├── constants.ts                   # Application constants and configuration
+│   └── utils.ts                       # Formatting utilities
+├── styles/
+│   ├── theme.ts                       # Design tokens (colors, spacing, typography)
+│   └── utils.ts                       # Theme utility functions
 public/
 ```
 
@@ -126,6 +145,43 @@ SUPABASE_DB_SCHEMA=public
 
 ---
 
+## 🎨 Design System
+
+The project uses a comprehensive design system with centralized configuration to ensure consistency and maintainability.
+
+### Structure
+
+- **`src/styles/theme.ts`** - Design tokens (colors, spacing, typography, shadows, transitions)
+- **`src/styles/utils.ts`** - Helper functions for accessing theme values (`getColor`, `getSpacing`, etc.)
+- **`src/lib/constants.ts`** - Application configuration (`APP_CONFIG`, `ROUTES`, `CONTACT_INFO`)
+- **`src/lib/utils.ts`** - Formatting utilities (`formatPrice`, `formatKilometers`, `formatDate`)
+- **`src/app/globals.css`** - CSS custom properties for global design tokens
+
+### Color Palette
+
+```typescript
+colors: {
+  primary: { 50-900 scale, default: #2563eb }
+  secondary: { purple gradient }
+  success: { light, base, dark }
+  warning: { light, base, dark }
+  error: { light, base, dark }
+  gray: { 50-900 scale }
+  background: { primary, secondary, tertiary }
+  text: { primary, secondary, tertiary, inverse }
+  border: { light, base, dark }
+}
+```
+
+### Usage Guidelines
+
+- **No hardcoded colors** - All colors should reference the design system
+- **Use constants** - Import from `@/lib/constants` for app configuration
+- **Formatting utilities** - Use `formatPrice`, `formatKilometers`, etc. from `@/lib/utils`
+- **RTL Support** - All layouts support right-to-left (Hebrew)
+
+---
+
 ## 🚀 How to Run
 
 ```bash
@@ -140,13 +196,29 @@ npm run dev
 
 # Navigate to the demo page
 # http://localhost:3000/demo/vehicles
+
+# Build for production
+npm run build
 ```
 
 ---
 
 ## 📝 Next Steps / Roadmap
 
+### ✅ Completed
+- [x] Supabase integration with server-side client
+- [x] Vehicle repository with CRUD operations
+- [x] Webhook API (create/update/upsert)
+- [x] Professional component architecture (Header, Footer, VehicleCard, VehicleGrid, Container)
+- [x] Design system with theme tokens and constants
+- [x] ISR (Incremental Static Regeneration) with 60-second revalidation
+- [x] Vercel deployment with environment variables
+
+### 🔄 In Progress
 - [ ] Test webhook in production (create/update vehicles via API)
+- [ ] Refine responsive design and mobile experience
+
+### 📋 Planned Features
 - [ ] Create individual vehicle detail page (`src/app/vehicles/[slug]/page.tsx`)
 - [ ] Add vehicle search and filtering functionality
 - [ ] Enhance home page (`src/app/page.tsx`) with featured vehicles

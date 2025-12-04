@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { Container } from './Container';
+import { APP_CONFIG, ROUTES } from '@/lib/constants';
 
 export function Header() {
   return (
@@ -7,7 +8,7 @@ export function Header() {
       <Container>
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+          <Link href={ROUTES.home} className="flex items-center gap-2 hover:opacity-80 transition-opacity">
             <svg 
               className="w-8 h-8 text-blue-600" 
               fill="none" 
@@ -22,20 +23,20 @@ export function Header() {
               />
             </svg>
             <span className="text-xl font-bold text-gray-900">
-              Car Dealership
+              {APP_CONFIG.name}
             </span>
           </Link>
 
           {/* Navigation */}
           <nav className="flex items-center gap-6">
             <Link 
-              href="/vehicles" 
+              href={ROUTES.vehicles} 
               className="text-gray-700 hover:text-blue-600 font-medium transition-colors"
             >
               רכבים
             </Link>
             <Link 
-              href="/demo/vehicles" 
+              href={ROUTES.demo} 
               className="text-gray-700 hover:text-blue-600 font-medium transition-colors"
             >
               דמו
