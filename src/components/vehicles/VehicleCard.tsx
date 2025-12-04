@@ -1,5 +1,4 @@
 import { Vehicle } from '@/lib/vehiclesRepository';
-import Link from 'next/link';
 
 interface VehicleCardProps {
   vehicle: Vehicle;
@@ -7,8 +6,7 @@ interface VehicleCardProps {
 
 export function VehicleCard({ vehicle }: VehicleCardProps) {
   return (
-    <Link 
-      href={`/vehicles/${vehicle.slug}`}
+    <div 
       className="group block bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100"
     >
       {/* Image Section */}
@@ -109,6 +107,6 @@ export function VehicleCard({ vehicle }: VehicleCardProps) {
           </div>
         </div>
       </div>
-    </Link>
+    </div>
   );
 }

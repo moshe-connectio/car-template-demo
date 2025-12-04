@@ -20,18 +20,13 @@ export function Footer() {
             <h3 className="text-white font-bold text-lg mb-4">קישורים מהירים</h3>
             <ul className="space-y-2 text-sm">
               <li>
+                <a href="/" className="hover:text-white transition-colors">
+                  דף הבית
+                </a>
+              </li>
+              <li>
                 <a href="/vehicles" className="hover:text-white transition-colors">
                   רכבים למכירה
-                </a>
-              </li>
-              <li>
-                <a href="/about" className="hover:text-white transition-colors">
-                  אודות
-                </a>
-              </li>
-              <li>
-                <a href="/contact" className="hover:text-white transition-colors">
-                  צור קשר
                 </a>
               </li>
               <li>
