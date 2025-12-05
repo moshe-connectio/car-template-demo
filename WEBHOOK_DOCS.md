@@ -46,6 +46,7 @@ Content-Type: application/json
     "gear_type": "Automatic",
     "fuel_type": "Petrol",
     "condition": "0 ק״מ",
+    "trim": "Premium",
     "categories": ["סדאן", "משפחתית"],
     "main_image_url": "https://example.com/toyota-camry.jpg",
     "short_description": "Beautiful Toyota Camry with low mileage",
@@ -95,6 +96,7 @@ Content-Type: application/json
 | `data.gear_type` | string | Transmission type (e.g., "Automatic", "Manual") |
 | `data.fuel_type` | string | Fuel type (e.g., "Petrol", "Diesel", "Electric") |
 | `data.condition` | string | Vehicle condition: `'חדש'` (new), `'0 ק״מ'` (zero km), or `'משומש'` (used). Defaults to `'משומש'` |
+| `data.trim` | string | Trim/package level (e.g., "S", "SE", "Limited", "Signature", "Premium") |
 | `data.categories` | string[] | Array of vehicle categories (see list below) |
 | `data.main_image_url` | string | URL of the main/primary image |
 | `data.short_description` | string | Brief description of the vehicle |
