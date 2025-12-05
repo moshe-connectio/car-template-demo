@@ -20,6 +20,7 @@ export type Vehicle = {
   fuel_type: string | null;
   condition: VehicleCondition; // Vehicle condition: 'חדש' (new), '0 ק״מ' (zero km), or 'משומש' (used)
   trim: string | null; // Trim level (e.g., "S", "SE", "Limited", "Signature", "Premium")
+  hand: number | null; // Hand number (1st hand, 2nd hand, 3rd hand, etc.)
   categories: string[]; // Vehicle categories (e.g., ["SUV", "4x4", "יוקרה"], etc.)
   main_image_url: string | null;
   short_description: string | null;
