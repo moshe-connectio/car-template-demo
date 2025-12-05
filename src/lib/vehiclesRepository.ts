@@ -384,13 +384,15 @@ export async function getVehicleImages(
 }
 
 /**
- * Delete all images for a vehicle from the database
+ * Delete all images for a vehicle from the database only (fast operation)
+ * Storage files are kept for efficiency - they don't interfere with functionality
  */
 export async function deleteVehicleImages(vehicleId: string): Promise<void> {
   try {
-    console.log(`🗑️ Deleting all images for vehicle ${vehicleId}`);
+    console.log(`🗑️ Deleting image records for vehicle ${vehicleId}`);
     const client = createServerSupabaseClient();
 
+    // Delete only from database (fast operation)
     const { error } = await client
       .from('vehicle_images')
       .delete()
@@ -401,7 +403,7 @@ export async function deleteVehicleImages(vehicleId: string): Promise<void> {
       throw new Error(`Failed to delete images: ${error.message}`);
     }
 
-    console.log(`✅ Successfully deleted all images for vehicle ${vehicleId}`);
+    console.log(`✅ Successfully deleted image records for vehicle ${vehicleId}`);
   } catch (err) {
     console.error('❌ Unexpected error in deleteVehicleImages:', err);
     throw err;
