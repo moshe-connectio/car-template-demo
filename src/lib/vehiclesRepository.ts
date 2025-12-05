@@ -383,6 +383,31 @@ export async function getVehicleImages(
   }
 }
 
+/**
+ * Delete all images for a vehicle from the database
+ */
+export async function deleteVehicleImages(vehicleId: string): Promise<void> {
+  try {
+    console.log(`🗑️ Deleting all images for vehicle ${vehicleId}`);
+    const client = createServerSupabaseClient();
+
+    const { error } = await client
+      .from('vehicle_images')
+      .delete()
+      .eq('vehicle_id', vehicleId);
+
+    if (error) {
+      console.error('❌ Error deleting vehicle images:', error);
+      throw new Error(`Failed to delete images: ${error.message}`);
+    }
+
+    console.log(`✅ Successfully deleted all images for vehicle ${vehicleId}`);
+  } catch (err) {
+    console.error('❌ Unexpected error in deleteVehicleImages:', err);
+    throw err;
+  }
+}
+
 export async function addImagesToVehicle(
   vehicleId: string,
   images: AddImageInput[]

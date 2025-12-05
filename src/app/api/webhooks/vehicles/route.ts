@@ -3,6 +3,7 @@ import { createServerSupabaseClient } from '@/lib/supabaseServerClient';
 import { 
   upsertVehicleByCrmId,
   addImagesToVehicle,
+  deleteVehicleImages,
   CreateVehicleInput, 
   AddImageInput,
   VehicleImage,
@@ -370,6 +371,12 @@ export async function POST(request: NextRequest) {
         });
 
         if (validImages.length > 0) {
+          // If updating existing vehicle with new images, delete old images first
+          if (result.action === 'updated') {
+            console.log(`🗑️ Deleting old images before adding new ones...`);
+            await deleteVehicleImages(result.vehicle.id);
+          }
+
           addedImages = await processAndUploadImages(
             result.vehicle.id,
             createData.slug,
