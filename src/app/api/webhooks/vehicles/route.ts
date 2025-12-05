@@ -224,23 +224,24 @@ async function uploadImageToSupabase(
 }
 
 /**
- * Process and upload images from webhook
+ * Process and upload images from webhook (parallel processing)
  */
 async function processAndUploadImages(
   vehicleId: string,
   vehicleSlug: string,
   images: (AddImageInput & { image_url: string })[]
 ): Promise<VehicleImage[]> {
-  const uploadedImages: VehicleImage[] = [];
+  console.log(`🖼️ Processing ${images.length} images in parallel...`);
 
-  for (const img of images) {
+  // Process all images in parallel
+  const imagePromises = images.map(async (img) => {
     try {
       console.log(`🖼️ Processing image at position ${img.position}: ${img.image_url}`);
 
       // Skip if URL is base64
       if (img.image_url.startsWith('data:image/')) {
         console.warn(`⚠️ Skipping base64 image at position ${img.position}`);
-        continue;
+        return null;
       }
 
       // Download image
@@ -256,19 +257,27 @@ async function processAndUploadImages(
         originalFileName
       );
 
-      // Add to database with new Supabase URL
-      uploadedImages.push({
+      // Return image data for database
+      return {
         vehicle_id: vehicleId,
         image_url: supabaseUrl,
         position: img.position,
         alt_text: img.alt_text || null,
-      } as VehicleImage);
+      } as VehicleImage;
     } catch (error) {
       console.error(`❌ Failed to process image at position ${img.position}:`, error);
-      // Continue with next image instead of failing entire webhook
-      continue;
+      // Return null for failed images
+      return null;
     }
-  }
+  });
+
+  // Wait for all images to complete
+  const results = await Promise.all(imagePromises);
+  
+  // Filter out failed images (null values)
+  const uploadedImages = results.filter((img): img is VehicleImage => img !== null);
+  
+  console.log(`✅ Successfully processed ${uploadedImages.length}/${images.length} images`);
 
   // Add all successfully uploaded images to database
   if (uploadedImages.length > 0) {
