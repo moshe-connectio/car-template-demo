@@ -322,9 +322,31 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Normalize hand field - convert string to number if needed
-    if (createData.hand && typeof createData.hand === 'string') {
-      createData = { ...createData, hand: parseInt(createData.hand, 10) as any };
+    // Normalize hand field - convert Hebrew text to number
+    if (createData.hand) {
+      let handValue: number;
+      
+      if (typeof createData.hand === 'string') {
+        const handStr = createData.hand.trim();
+        const hebrewHandMap: Record<string, number> = {
+          'ראשונה': 1,
+          'שנייה': 2,
+          'שלישית': 3,
+          'רביעית': 4,
+          'חמישית': 5,
+          'שישית': 6,
+          'שביעית': 7,
+          'שמינית': 8,
+          'תשיעית': 9,
+          'עשירית': 10,
+        };
+        
+        handValue = hebrewHandMap[handStr] || parseInt(handStr, 10);
+      } else {
+        handValue = createData.hand;
+      }
+      
+      createData = { ...createData, hand: handValue as any };
     }
 
     console.log(`🔄 Processing webhook for crmid: ${payload.crmid}`);
