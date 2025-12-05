@@ -96,9 +96,9 @@ async function extractZohoDownloadUrl(htmlPageUrl: string): Promise<string> {
 }
 
 /**
- * Download image from URL and return as Buffer
+ * Download image from URL and return buffer with filename
  */
-async function downloadImage(imageUrl: string): Promise<Buffer> {
+async function downloadImage(imageUrl: string): Promise<{ buffer: Buffer; filename: string }> {
   try {
     // For Google Drive URLs, convert to direct download URL
     let downloadUrl = imageUrl;
