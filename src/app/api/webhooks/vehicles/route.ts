@@ -312,7 +312,20 @@ export async function POST(request: NextRequest) {
     }
 
     const payload = body as WebhookPayload;
-    const createData = payload.data as CreateVehicleInput;
+    let createData = payload.data as CreateVehicleInput;
+
+    // Normalize condition field - convert variations to standard format
+    if (createData.condition) {
+      const normalizedCondition = createData.condition.trim();
+      if (normalizedCondition === 'אפס ק״מ' || normalizedCondition === 'אפס קמ') {
+        createData = { ...createData, condition: '0 ק״מ' as any };
+      }
+    }
+
+    // Normalize hand field - convert string to number if needed
+    if (createData.hand && typeof createData.hand === 'string') {
+      createData = { ...createData, hand: parseInt(createData.hand, 10) as any };
+    }
 
     console.log(`🔄 Processing webhook for crmid: ${payload.crmid}`);
     console.log(`📋 is_published: ${createData.is_published}`);
