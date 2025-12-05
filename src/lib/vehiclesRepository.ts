@@ -1,5 +1,7 @@
 import { createServerSupabaseClient } from './supabaseServerClient';
 
+export type VehicleCondition = 'חדש' | '0 ק״מ' | 'משומש';
+
 export type Vehicle = {
   id: string;
   created_at: string;
@@ -16,6 +18,7 @@ export type Vehicle = {
   km: number | null;
   gear_type: string | null;
   fuel_type: string | null;
+  condition: VehicleCondition; // Vehicle condition: 'חדש' (new), '0 ק״מ' (zero km), or 'משומש' (used)
   categories: string[]; // Vehicle categories (e.g., ["SUV", "4x4", "יוקרה"], etc.)
   main_image_url: string | null;
   short_description: string | null;
