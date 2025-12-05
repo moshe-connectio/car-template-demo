@@ -58,6 +58,44 @@ type WebhookPayload = {
 };
 
 /**
+ * Extract actual download URL from Zoho WorkDrive HTML page
+ */
+async function extractZohoDownloadUrl(htmlPageUrl: string): Promise<string> {
+  try {
+    console.log(`🔍 Extracting download URL from Zoho WorkDrive page: ${htmlPageUrl}`);
+    
+    // Fetch the HTML page
+    const response = await fetch(htmlPageUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch Zoho page: HTTP ${response.status}`);
+    }
+
+    const html = await response.text();
+
+    // Extract downloadUrl from JavaScript variable in the HTML
+    // Pattern: downloadUrl = "https://files-accl.zohoexternal.com/..."
+    const downloadUrlMatch = html.match(/downloadUrl\s*=\s*"([^"]+)"/);
+    
+    if (!downloadUrlMatch || !downloadUrlMatch[1]) {
+      throw new Error('Could not extract download URL from Zoho WorkDrive page');
+    }
+
+    const actualDownloadUrl = downloadUrlMatch[1];
+    console.log(`✅ Extracted Zoho download URL: ${actualDownloadUrl}`);
+    
+    return actualDownloadUrl;
+  } catch (error) {
+    console.error(`❌ Error extracting Zoho download URL:`, error);
+    throw error;
+  }
+}
+
+/**
  * Download image from URL and return as Buffer
  */
 async function downloadImage(imageUrl: string): Promise<Buffer> {
@@ -70,6 +108,11 @@ async function downloadImage(imageUrl: string): Promise<Buffer> {
       if (fileIdMatch && fileIdMatch[1]) {
         downloadUrl = `https://drive.google.com/uc?id=${fileIdMatch[1]}&export=download`;
       }
+    }
+    
+    // For Zoho WorkDrive URLs, extract the actual download URL from the HTML page
+    if (imageUrl.includes('workdrive.zoho') && imageUrl.includes('/download')) {
+      downloadUrl = await extractZohoDownloadUrl(imageUrl);
     }
 
     console.log(`📥 Downloading from: ${downloadUrl}`);
@@ -84,8 +127,16 @@ async function downloadImage(imageUrl: string): Promise<Buffer> {
     }
 
     const contentType = response.headers.get('content-type') || '';
-    if (!contentType.includes('image')) {
-      throw new Error(`Invalid content type: ${contentType}. Expected image.`);
+    console.log(`📝 Response headers:`, Object.fromEntries(response.headers.entries()));
+    console.log(`🖼️ Content-Type: ${contentType}`);
+
+    // Accept image/* or application/octet-stream if the URL ends with a known image extension
+    const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp'];
+    const urlLower = downloadUrl.toLowerCase();
+    const hasImageExtension = imageExtensions.some(ext => urlLower.endsWith(ext));
+
+    if (!contentType.includes('image') && !(contentType === 'application/octet-stream' && hasImageExtension)) {
+      throw new Error(`Invalid content type: ${contentType}. Expected image or octet-stream with image extension.`);
     }
 
     const arrayBuffer = await response.arrayBuffer();
