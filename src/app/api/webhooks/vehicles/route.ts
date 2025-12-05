@@ -323,11 +323,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Normalize hand field - convert Hebrew text to number
-    if (createData.hand) {
+    if (createData.hand !== undefined && createData.hand !== null) {
       let handValue: number;
       
-      if (typeof createData.hand === 'string') {
-        const handStr = createData.hand.trim();
+      if (typeof (createData.hand as any) === 'string') {
+        const handStr = (createData.hand as any).trim();
         const hebrewHandMap: Record<string, number> = {
           'ראשונה': 1,
           'שנייה': 2,
@@ -343,7 +343,7 @@ export async function POST(request: NextRequest) {
         
         handValue = hebrewHandMap[handStr] || parseInt(handStr, 10);
       } else {
-        handValue = createData.hand;
+        handValue = createData.hand as number;
       }
       
       createData = { ...createData, hand: handValue as any };
