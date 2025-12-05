@@ -52,22 +52,26 @@ export function formatRelativeTime(date: Date | string): string {
 }
 
 /**
- * Generate vehicle slug from title
+ * Generate vehicle slug from title (supports Hebrew and English)
  * @example generateSlug('Toyota Camry 2024') // returns 'toyota-camry-2024'
+ * @example generateSlug('טויוטה קאמרי 2024') // returns 'טויוטה-קאמרי-2024'
  */
 export function generateSlug(text: string): string {
   return text
     .toLowerCase()
-    .replace(/[^\w\s-]/g, '')
+    // Keep Hebrew letters (א-ת), English letters (a-z), numbers (0-9), spaces, and hyphens
+    .replace(/[^\u0590-\u05FF\w\s-]/g, '')
     .replace(/\s+/g, '-')
     .replace(/-+/g, '-')
     .trim();
 }
 
 /**
- * Generate vehicle URL slug with ID
+ * Generate vehicle URL slug with ID (supports Hebrew)
  * @example generateVehicleSlug('Toyota Camry', 2024, '123e4567-e89b-12d3-a456-426614174000') 
  * // returns 'toyota-camry-2024-426614174000'
+ * @example generateVehicleSlug('טויוטה קאמרי', 2024, '123e4567-e89b-12d3-a456-426614174000')
+ * // returns 'טויוטה-קאמרי-2024-426614174000'
  */
 export function generateVehicleSlug(title: string, year: number, id: string): string {
   const baseSlug = generateSlug(`${title} ${year}`);
