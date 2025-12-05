@@ -140,7 +140,26 @@ async function downloadImage(imageUrl: string): Promise<Buffer> {
     }
 
     const arrayBuffer = await response.arrayBuffer();
-    return Buffer.from(arrayBuffer);
+    const buffer = Buffer.from(arrayBuffer);
+    
+    // Extract actual filename from Content-Disposition header if available
+    const contentDisposition = response.headers.get('content-disposition');
+    let actualFilename = 'image.jpg';
+    if (contentDisposition) {
+      const filenameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+      if (filenameMatch && filenameMatch[1]) {
+        actualFilename = filenameMatch[1].replace(/['"]/g, '');
+        // Decode URL-encoded filename (e.g., filename*=UTF-8''image.jpg)
+        if (actualFilename.includes('UTF-8')) {
+          const urlEncodedMatch = actualFilename.match(/UTF-8''(.+)/);
+          if (urlEncodedMatch) {
+            actualFilename = decodeURIComponent(urlEncodedMatch[1]);
+          }
+        }
+      }
+    }
+    
+    return { buffer, filename: actualFilename };
   } catch (error) {
     console.error(`❌ Error downloading image:`, error);
     throw error;
@@ -163,10 +182,10 @@ async function uploadImageToSupabase(
     // Extract ID suffix from vehicle ID (last 8 chars)
     const idSuffix = vehicleId.slice(-8);
 
-    // Create folder path: vehicles/{slug}-{idSuffix}/
-    const folderPath = `vehicles/${vehicleSlug}-${idSuffix}`;
+    // Create folder path: vehicles/{idSuffix}/ (using ID only to avoid Hebrew chars)
+    const folderPath = `vehicles/${idSuffix}`;
 
-    // Generate unique filename: position-{timestamp}-{originalName}
+    // Generate unique filename: position-{timestamp}.{ext}
     const timestamp = Date.now();
     const ext = originalFileName.split('.').pop() || 'jpg';
     const fileName = `${position}-${timestamp}.${ext}`;
@@ -225,11 +244,7 @@ async function processAndUploadImages(
 
       // Download image
       console.log(`⬇️ Downloading image from: ${img.image_url}`);
-      const imageBuffer = await downloadImage(img.image_url);
-
-      // Extract filename from URL
-      const urlObj = new URL(img.image_url);
-      const originalFileName = urlObj.pathname.split('/').pop() || 'image';
+      const { buffer: imageBuffer, filename: originalFileName } = await downloadImage(img.image_url);
 
       // Upload to Supabase Storage
       const supabaseUrl = await uploadImageToSupabase(
