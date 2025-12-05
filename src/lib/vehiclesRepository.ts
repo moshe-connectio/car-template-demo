@@ -450,6 +450,109 @@ export async function updateVehicleImage(
   }
 }
 
+/**
+ * Mark a vehicle as sold (soft delete) by setting is_published to false
+ * The vehicle will be automatically deleted after 2 days by deleteSoldVehicles()
+ * 
+ * @param crmid - The CRM ID of the vehicle to mark as sold
+ * @returns boolean - true if vehicle was found and marked, false if not found
+ */
+export async function markVehicleAsSold(crmid: string): Promise<boolean> {
+  try {
+    console.log(`🏷️ Marking vehicle as sold: ${crmid}`);
+    const client = createServerSupabaseClient();
+
+    const { data, error } = await client
+      .from('vehicles')
+      .update({ is_published: false, updated_at: new Date().toISOString() })
+      .eq('crmid', crmid)
+      .select();
+
+    if (error) {
+      console.error('❌ Error marking vehicle as sold:', error);
+      throw new Error(`Failed to mark vehicle as sold: ${error.message}`);
+    }
+
+    const wasMarked = data && data.length > 0;
+    if (wasMarked) {
+      console.log(`✅ Vehicle marked as sold: ${crmid}`);
+    } else {
+      console.log(`ℹ️ No vehicle found with crmid: ${crmid}`);
+    }
+
+    return wasMarked;
+  } catch (err) {
+    console.error('❌ Unexpected error in markVehicleAsSold:', err);
+    throw err;
+  }
+}
+
+/**
+ * Delete a single vehicle by its ID (hard delete)
+ * This will also delete all related images from vehicle_images table (cascade delete)
+ * 
+ * @param vehicleId - The vehicle ID to delete
+ * @returns void
+ */
+export async function deleteVehicleById(vehicleId: string): Promise<void> {
+  try {
+    console.log(`🗑️ Deleting vehicle ${vehicleId}`);
+    const client = createServerSupabaseClient();
+
+    const { error } = await client
+      .from('vehicles')
+      .delete()
+      .eq('id', vehicleId);
+
+    if (error) {
+      console.error('❌ Error deleting vehicle:', error);
+      throw new Error(`Failed to delete vehicle: ${error.message}`);
+    }
+
+    console.log(`✅ Vehicle deleted successfully: ${vehicleId}`);
+  } catch (err) {
+    console.error('❌ Unexpected error in deleteVehicleById:', err);
+    throw err;
+  }
+}
+
+/**
+ * Delete a vehicle by its CRM ID (crmid)
+ * This is useful when integrating with external systems like Zoho CRM
+ * 
+ * @param crmid - The CRM ID to delete
+ * @returns boolean - true if vehicle was found and deleted, false if not found
+ */
+export async function deleteVehicleByCrmId(crmid: string): Promise<boolean> {
+  try {
+    console.log(`🗑️ Deleting vehicle with crmid: ${crmid}`);
+    const client = createServerSupabaseClient();
+
+    const { data, error } = await client
+      .from('vehicles')
+      .delete()
+      .eq('crmid', crmid)
+      .select();
+
+    if (error) {
+      console.error('❌ Error deleting vehicle:', error);
+      throw new Error(`Failed to delete vehicle: ${error.message}`);
+    }
+
+    const wasDeleted = data && data.length > 0;
+    if (wasDeleted) {
+      console.log(`✅ Vehicle deleted successfully: ${crmid}`);
+    } else {
+      console.log(`ℹ️ No vehicle found with crmid: ${crmid}`);
+    }
+
+    return wasDeleted;
+  } catch (err) {
+    console.error('❌ Unexpected error in deleteVehicleByCrmId:', err);
+    throw err;
+  }
+}
+
 export async function deleteVehicleImage(imageId: string): Promise<void> {
   try {
     console.log(`🔍 Deleting image ${imageId}`);

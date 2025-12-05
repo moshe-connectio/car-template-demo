@@ -432,9 +432,110 @@ console.log(result);
 
 ---
 
+## Vehicle Deletion API
+
+### Mark Vehicle as Sold (Soft Delete) - Recommended ✅
+
+**Endpoint:** `POST /api/webhooks/vehicles/mark-sold`
+
+Mark a vehicle as sold (sets `is_published = false`). The vehicle will be hidden from listings immediately and automatically deleted after 2 days.
+
+**Request:**
+```json
+{
+  "crmid": "ZOHO-DEAL-12345"
+}
+```
+
+**Success Response:**
+```json
+{
+  "success": true,
+  "message": "Vehicle marked as sold",
+  "crmid": "ZOHO-DEAL-12345",
+  "note": "Vehicle will be automatically deleted after 2 days"
+}
+```
+
+**Error Response (Not Found):**
+```json
+{
+  "success": false,
+  "error": "No vehicle found with crmid: ZOHO-DEAL-12345"
+}
+```
+
+**Use Cases:**
+- ✅ Vehicle was sold
+- ✅ Want to keep history for 2 days
+- ✅ Can be reversed by re-publishing
+- ✅ Recommended for most cases
+
+---
+
+### Delete Vehicle Permanently (Hard Delete) ⚠️
+
+**Endpoint:** `POST /api/webhooks/vehicles/delete` or `DELETE /api/webhooks/vehicles/delete`
+
+Permanently delete a vehicle and all its images. **Cannot be undone!**
+
+**Request (by CRM ID):**
+```json
+{
+  "crmid": "ZOHO-DEAL-12345"
+}
+```
+
+**Request (by Vehicle ID):**
+```json
+{
+  "vehicleId": "550e8400-e29b-41d4-a716-446655440000"
+}
+```
+
+**Success Response:**
+```json
+{
+  "success": true,
+  "message": "Vehicle deleted successfully",
+  "crmid": "ZOHO-DEAL-12345"
+}
+```
+
+**Error Response (Not Found):**
+```json
+{
+  "success": false,
+  "error": "No vehicle found with crmid: ZOHO-DEAL-12345"
+}
+```
+
+**Use Cases:**
+- ⚠️ Vehicle entered by mistake
+- ⚠️ Duplicate vehicle
+- ⚠️ Immediate removal needed
+- ⚠️ **Warning:** Cannot be undone!
+
+---
+
+### Comparison: Soft Delete vs Hard Delete
+
+| Feature | Soft Delete | Hard Delete |
+|---------|-------------|-------------|
+| **Speed** | Immediate | Immediate |
+| **Reversible** | ✅ Yes (within 2 days) | ❌ No |
+| **Keeps History** | ✅ Yes | ❌ No |
+| **Best For** | Sold vehicles | Mistakes/duplicates |
+| **Endpoint** | `/mark-sold` | `/delete` |
+
+**Recommendation:** Always use soft delete unless you have a specific reason for hard delete.
+
+---
+
 ## Support
 
 For issues or questions, check:
 1. Server logs for detailed error messages
 2. Response body for the specific error
 3. Webhook payload for missing/invalid fields
+4. [VEHICLE_DELETION_GUIDE.md](./VEHICLE_DELETION_GUIDE.md) for detailed deletion documentation
