@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { Rubik } from "next/font/google";
 // @ts-ignore - CSS import
 import "./globals.css";
 import { dealershipConfig } from "@/config/dealership.config";
@@ -14,6 +15,12 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const rubik = Rubik({
+  variable: "--font-hebrew",
+  subsets: ["hebrew"],
+  weight: ["300", "400", "500", "600", "700"],
+});
+
 export const metadata: Metadata = {
   title: dealershipConfig.business.name,
   description: dealershipConfig.business.description,
@@ -25,9 +32,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="he" dir="rtl">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${rubik.variable} antialiased`}
       >
         {children}
       </body>
