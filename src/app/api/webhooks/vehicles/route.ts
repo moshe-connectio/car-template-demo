@@ -38,7 +38,7 @@ import { generateVehicleSlug, extractIdFromSlug } from '@shared/utils/formatting
  *   "images": [           // Optional
  *     {
  *       "image_url": "https://...",
- *       "position": 1,    // 1-10 (1 is primary image)
+ *       "position": 1,    // 1-20 (1 is primary image)
  *       "alt_text": "Front view"
  *     }
  *   ]

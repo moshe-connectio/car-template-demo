@@ -24,7 +24,7 @@ export type Vehicle = {
   categories: string[]; // Vehicle categories (e.g., ["SUV", "4x4", "יוקרה"], etc.)
   main_image_url: string | null;
   short_description: string | null;
-  images: VehicleImage[] | null; // Array of up to 10 images
+  images: VehicleImage[] | null; // Array of up to 20 images
   raw_data: Record<string, unknown> | null;
 };
 
@@ -32,7 +32,7 @@ export type VehicleImage = {
   id: string;
   vehicle_id: string;
   image_url: string;
-  position: number; // 1-10, where 1 is primary image
+  position: number; // 1-20, where 1 is primary image
   alt_text: string | null;
   uploaded_at: string;
 };
@@ -423,10 +423,10 @@ export async function addImagesToVehicle(
       return [];
     }
 
-    // Validate positions are within 1-10 range
+    // Validate positions are within 1-20 range
     for (const img of images) {
-      if (img.position < 1 || img.position > 10) {
-        throw new Error(`Image position must be between 1 and 10, got ${img.position}`);
+      if (img.position < 1 || img.position > 20) {
+        throw new Error(`Image position must be between 1 and 20, got ${img.position}`);
       }
     }
 
@@ -456,9 +456,9 @@ export async function updateVehicleImage(
     console.log(`🔍 Updating image ${imageId}`);
     const client = createServerSupabaseClient();
 
-    if (updates.position && (updates.position < 1 || updates.position > 10)) {
+    if (updates.position && (updates.position < 1 || updates.position > 20)) {
       throw new Error(
-        `Image position must be between 1 and 10, got ${updates.position}`
+        `Image position must be between 1 and 20, got ${updates.position}`
       );
     }
 
