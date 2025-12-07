@@ -22,35 +22,54 @@ A reusable website template for car dealerships and other automotive businesses 
 
 ```
 src/
-├── app/
-│   ├── globals.css                    # Global styles with design system CSS variables
-│   ├── layout.tsx
-│   ├── page.tsx
-│   ├── api/
-│   │   └── webhooks/
-│   │       └── vehicles/
-│   │           └── route.ts           # Webhook API for external integrations
-│   ├── demo/
-│   │   └── vehicles/
-│   │       └── page.tsx               # Demo page showing vehicles from DB
-│   └── vehicles/
-│       └── page.tsx                   # Main vehicles page with ISR
-├── components/
-│   ├── layout/
-│   │   ├── Container.tsx              # Reusable container wrapper
-│   │   ├── Header.tsx                 # Site header with navigation
-│   │   └── Footer.tsx                 # Site footer with contact info
-│   └── vehicles/
-│       ├── VehicleCard.tsx            # Individual vehicle card component
-│       └── VehicleGrid.tsx            # Responsive grid with empty state
-├── lib/
-│   ├── supabaseServerClient.ts        # Server-side Supabase client
-│   ├── vehiclesRepository.ts          # Vehicles data access layer
-│   ├── constants.ts                   # Application constants and configuration
-│   └── utils.ts                       # Formatting utilities
-├── styles/
-│   ├── theme.ts                       # Design tokens (colors, spacing, typography)
-│   └── utils.ts                       # Theme utility functions
+├── core/                              # Shared configuration and core libraries
+│   ├── config/
+│   │   ├── site.config.ts             # Site configuration (name, contact, social)
+│   │   └── theme.config.ts            # Theme configuration (colors, fonts)
+│   └── lib/
+│       ├── supabase.ts                # Supabase server client
+│       └── constants.ts               # Constants and routes
+├── shared/                            # Reusable components and utilities
+│   ├── components/
+│   │   └── layout/
+│   │       ├── Container.tsx          # Reusable container wrapper
+│   │       ├── Header.tsx             # Site header with navigation
+│   │       └── Footer.tsx             # Site footer with contact info
+│   └── utils/
+│       ├── formatting.ts              # Formatting utilities (prices, dates)
+│       └── theme.ts                   # Theme utilities
+├── modules/                           # Feature modules
+│   └── vehicles/                      # Vehicle module
+│       ├── components/
+│       │   ├── VehicleCard.tsx
+│       │   ├── VehicleGrid.tsx
+│       │   ├── VehicleFilters.tsx
+│       │   ├── FilterableVehicleGrid.tsx
+│       │   └── VehicleImageGallery.tsx
+│       └── lib/
+│           └── repository.ts          # Vehicle data access layer
+└── app/                               # Next.js App Router
+    ├── globals.css                    # Global styles with design system CSS variables
+    ├── layout.tsx                     # Root layout
+    ├── page.tsx                       # Home page
+    ├── api/
+    │   ├── vehicles/
+    │   │   └── [id]/route.ts
+    │   ├── cron/
+    │   │   └── cleanup-vehicles/
+    │   │       └── route.ts
+    │   └── webhooks/
+    │       ├── upload-image/
+    │       │   └── route.ts
+    │       └── vehicles/
+    │           ├── route.ts
+    │           ├── delete/
+    │           │   └── route.ts
+    │           └── mark-sold/
+    │               └── route.ts
+    └── vehicles/
+        ├── page.tsx                   # Vehicles listing page with ISR
+        └── [slug]/page.tsx            # Vehicle detail page
 public/
 ```
 
@@ -122,14 +141,14 @@ SUPABASE_DB_SCHEMA=public
 - ✓ Throws clear errors if env vars are missing
 - ✓ No client-side exposure of sensitive keys
 
-### 2. Vehicles Repository (`src/lib/vehiclesRepository.ts`)
+### 2. Vehicles Repository (`src/modules/vehicles/lib/repository.ts`)
 - ✓ `Vehicle` TypeScript type matching the database schema
 - ✓ `getPublishedVehicles()` – Fetches all published vehicles ordered by creation date (newest first)
 - ✓ `getVehicleBySlug(slug: string)` – Fetches a single vehicle by slug
 - ✓ Proper error handling with console logging
 - ✓ Detailed logging for debugging
 
-### 3. Demo Page (`src/app/demo/vehicles/page.tsx`)
+### 3. Vehicles Page (`src/app/vehicles/page.tsx`)
 - ✓ Server component (no "use client" directive)
 - ✓ Incremental Static Regeneration (ISR) with 60-second revalidation
 - ✓ Responsive grid layout (1 col mobile, 2 col tablet, 3 col desktop)
@@ -146,8 +165,8 @@ SUPABASE_DB_SCHEMA=public
 
 ### 4. Vercel Deployment
 - ✓ Environment variables configured in Vercel
-- ✓ Live deployment working at: `https://car-template-demo.vercel.app/demo/vehicles`
-- ✓ All 3 vehicles displaying correctly in production
+- ✓ Live deployment working at: `https://car-template-demo.vercel.app`
+- ✓ All vehicles displaying correctly in production
 
 ### 5. Webhook API (`src/app/api/webhooks/vehicles`)
 - ✓ POST endpoint for creating vehicles
@@ -211,8 +230,8 @@ npm install
 # Run development server
 npm run dev
 
-# Navigate to the demo page
-# http://localhost:3000/demo/vehicles
+# Navigate to the vehicles page
+# http://localhost:3000/vehicles
 
 # Build for production
 npm run build

@@ -1,47 +1,81 @@
 import Link from 'next/link';
+import { FaFacebook, FaInstagram, FaWhatsapp, FaYoutube, FaCarSide } from 'react-icons/fa6';
 import { Container } from './Container';
 import { APP_CONFIG, ROUTES } from '@core/lib/constants';
+import { dealershipConfig } from '@core/config/site.config';
 
 export function Header() {
+  const socialLinks = [
+    { 
+      name: 'Facebook', 
+      url: dealershipConfig.social.facebook,
+      icon: FaFacebook,
+    },
+    { 
+      name: 'Instagram', 
+      url: dealershipConfig.social.instagram,
+      icon: FaInstagram,
+    },
+    { 
+      name: 'WhatsApp', 
+      url: dealershipConfig.social.whatsapp,
+      icon: FaWhatsapp,
+    },
+    { 
+      name: 'YouTube', 
+      url: dealershipConfig.social.youtube,
+      icon: FaYoutube,
+    },
+  ];
+
   return (
     <header className="bg-header border-header sticky top-0 z-50 border-b">
       <Container>
-        <div className="flex items-center justify-between h-16">
-          {/* Logo */}
-          <Link href={ROUTES.home} className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-            <svg 
-              className="w-8 h-8 text-primary" 
-              fill="none" 
-              stroke="currentColor" 
-              viewBox="0 0 24 24"
-            >
-              <path 
-                strokeLinecap="round" 
-                strokeLinejoin="round" 
-                strokeWidth={2} 
-                d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" 
-              />
-            </svg>
-            <span className="text-xl font-bold text-header">
+        {/* Single Row - All Elements */}
+        <div className="flex items-center justify-between h-16 px-2">
+          {/* Logo - Right */}
+          <Link 
+            href={ROUTES.home} 
+            className="flex items-center gap-2 shrink-0 group hover:opacity-90 transition-opacity duration-200"
+          >
+            <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-linear-to-br from-primary to-blue-700 group-hover:shadow-md transition-shadow duration-200">
+              <FaCarSide className="w-6 h-6 text-white" />
+            </div>
+            <span className="text-sm font-bold text-header hidden sm:inline">
               {APP_CONFIG.name}
             </span>
           </Link>
 
-          {/* Navigation */}
-          <nav className="flex items-center gap-6">
+          {/* Navigation - Center */}
+          <nav className="flex items-center gap-8 flex-1 justify-center">
             <Link 
               href={ROUTES.vehicles} 
-              className="text-gray-700 hover:text-primary font-medium transition-colors"
+              className="text-gray-700 hover:text-primary font-medium transition-all duration-200 text-sm relative group"
             >
               רכבים
-            </Link>
-            <Link 
-              href={ROUTES.demo} 
-              className="text-gray-700 hover:text-primary font-medium transition-colors"
-            >
-              דמו
+              <span className="absolute bottom-0 right-0 w-0 h-0.5 bg-primary group-hover:w-full transition-all duration-300"></span>
             </Link>
           </nav>
+
+          {/* Social Links - Left */}
+          <div className="flex items-center gap-4 shrink-0">
+            {socialLinks.map((social) => {
+              const Icon = social.icon;
+              return (
+                <a
+                  key={social.name}
+                  href={social.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-gray-600 hover:text-primary transition-all duration-200 hover:scale-110 p-1.5 rounded-md hover:bg-gray-100"
+                  title={social.name}
+                  aria-label={social.name}
+                >
+                  <Icon className="w-4 h-4" />
+                </a>
+              );
+            })}
+          </div>
         </div>
       </Container>
     </header>

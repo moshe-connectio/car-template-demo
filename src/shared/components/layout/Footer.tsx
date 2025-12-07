@@ -30,11 +30,6 @@ export function Footer() {
                   רכבים למכירה
                 </a>
               </li>
-              <li>
-                <a href={ROUTES.demo} className="hover:text-footer-heading transition-colors">
-                  דמו
-                </a>
-              </li>
             </ul>
           </div>
 
