@@ -99,7 +99,7 @@ async function extractZohoDownloadUrl(htmlPageUrl: string): Promise<string> {
 /**
  * Download image from URL and return buffer with filename
  */
-async function downloadImage(imageUrl: string): Promise<{ buffer: Buffer; filename: string }> {
+async function downloadImage(imageUrl: string): Promise<{ buffer: Buffer; filename: string; contentType: string }> {
   try {
     // For Google Drive URLs, convert to direct download URL
     let downloadUrl = imageUrl;
@@ -145,7 +145,7 @@ async function downloadImage(imageUrl: string): Promise<{ buffer: Buffer; filena
       const buffer = Buffer.from(arrayBuffer);
 
       const contentDisposition = response.headers.get('content-disposition');
-      let actualFilename = 'image.jpg';
+      let actualFilename = 'image';
       if (contentDisposition) {
         const filenameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
         if (filenameMatch && filenameMatch[1]) {
@@ -159,7 +159,23 @@ async function downloadImage(imageUrl: string): Promise<{ buffer: Buffer; filena
         }
       }
 
-      return { buffer, filename: actualFilename };
+      // Ensure filename has a proper extension
+      const hasExt = /\.[a-zA-Z0-9]+$/.test(actualFilename);
+      if (!hasExt) {
+        const ct = contentType.toLowerCase();
+        const ctToExt: Record<string, string> = {
+          'image/jpeg': 'jpg',
+          'image/jpg': 'jpg',
+          'image/png': 'png',
+          'image/webp': 'webp',
+          'image/gif': 'gif',
+          'image/bmp': 'bmp',
+        };
+        const guessedExt = ctToExt[ct] || (hasImageExtension ? urlLower.split('.').pop() || 'jpg' : 'jpg');
+        actualFilename = `${actualFilename}.${guessedExt}`;
+      }
+
+      return { buffer, filename: actualFilename, contentType };
     };
 
     try {
@@ -189,7 +205,8 @@ async function uploadImageToSupabase(
   vehicleSlug: string,
   vehicleId: string,
   position: number,
-  originalFileName: string
+  originalFileName: string,
+  sourceContentType?: string
 ): Promise<string> {
   try {
     const client = createServerSupabaseClient();
@@ -209,10 +226,21 @@ async function uploadImageToSupabase(
     console.log(`📤 Uploading image to Supabase: ${filePath}`);
     console.log(`   Buffer size: ${imageBuffer.length} bytes`);
 
+    // Choose content type based on source
+    const ct = (sourceContentType && sourceContentType.toLowerCase().startsWith('image/'))
+      ? sourceContentType
+      : (originalFileName.toLowerCase().endsWith('.png')
+          ? 'image/png'
+          : originalFileName.toLowerCase().endsWith('.webp')
+            ? 'image/webp'
+            : originalFileName.toLowerCase().endsWith('.gif')
+              ? 'image/gif'
+              : 'image/jpeg');
+
     const { data, error } = await client.storage
       .from('vehicle-images')
       .upload(filePath, imageBuffer, {
-        contentType: 'image/jpeg',
+        contentType: ct,
         upsert: false,
       });
 
@@ -244,7 +272,7 @@ async function processAndUploadImages(
   vehicleId: string,
   vehicleSlug: string,
   images: (AddImageInput & { image_url: string })[]
-): Promise<VehicleImage[]> {
+): Promise<AddImageInput[]> {
   console.log(`🖼️ Processing ${images.length} images in parallel...`);
 
   // Process all images in parallel
@@ -260,7 +288,7 @@ async function processAndUploadImages(
 
       // Download image
       console.log(`⬇️ Downloading image from: ${img.image_url}`);
-      const { buffer: imageBuffer, filename: originalFileName } = await downloadImage(img.image_url);
+      const { buffer: imageBuffer, filename: originalFileName, contentType } = await downloadImage(img.image_url);
 
       // Upload to Supabase Storage
       const supabaseUrl = await uploadImageToSupabase(
@@ -268,7 +296,8 @@ async function processAndUploadImages(
         vehicleSlug,
         vehicleId,
         img.position,
-        originalFileName
+        originalFileName,
+        contentType
       );
 
       // Return image data for database
@@ -277,7 +306,7 @@ async function processAndUploadImages(
         image_url: supabaseUrl,
         position: img.position,
         alt_text: img.alt_text || null,
-      } as VehicleImage;
+      } as AddImageInput;
     } catch (error) {
       console.error(`❌ Failed to process image at position ${img.position}:`, error);
       console.error(`   URL: ${img.image_url}`);
@@ -290,17 +319,10 @@ async function processAndUploadImages(
   const results = await Promise.all(imagePromises);
   
   // Filter out failed images (null values)
-  const uploadedImages = results.filter((img): img is VehicleImage => img !== null);
+  const uploadedImages = results.filter((img): img is AddImageInput => img !== null);
   
   console.log(`✅ Successfully processed ${uploadedImages.length}/${images.length} images`);
-
-  // Add all successfully uploaded images to database
-  if (uploadedImages.length > 0) {
-    const addedImages = await addImagesToVehicle(vehicleId, uploadedImages);
-    return addedImages;
-  }
-
-  return [];
+  return uploadedImages;
 }
 
 export async function POST(request: NextRequest) {
@@ -431,17 +453,23 @@ export async function POST(request: NextRequest) {
 
         if (validImages.length > 0) {
           // If updating existing vehicle with new images, delete old images first
-          if (result.action === 'updated') {
-            console.log(`🗑️ Deleting old images before adding new ones...`);
-            await deleteVehicleImages(result.vehicle.id);
-          }
-
-          addedImages = await processAndUploadImages(
+          const uploadedImages = await processAndUploadImages(
             result.vehicle.id,
             createData.slug,
             validImages
           );
-          console.log(`✅ Added ${addedImages.length} images to vehicle`);
+
+          if (uploadedImages.length > 0) {
+            if (result.action === 'updated') {
+              console.log(`🗑️ Deleting old images before adding new ones (new uploads succeeded)...`);
+              await deleteVehicleImages(result.vehicle.id);
+            }
+
+            addedImages = await addImagesToVehicle(result.vehicle.id, uploadedImages);
+            console.log(`✅ Added ${addedImages.length} images to vehicle`);
+          } else if (result.action === 'updated') {
+            console.log(`ℹ️ No new images uploaded; keeping existing images for vehicle ${result.vehicle.id}`);
+          }
         }
       } catch (error) {
         console.error('❌ Error processing images:', error);
