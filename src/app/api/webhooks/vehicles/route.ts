@@ -133,7 +133,8 @@ async function downloadImage(imageUrl: string): Promise<{ buffer: Buffer; filena
       const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp'];
       const urlLower = url.toLowerCase();
       const hasImageExtension = imageExtensions.some(ext => urlLower.endsWith(ext));
-      const isImageLike = contentType.includes('image') || (contentType === 'application/octet-stream' && hasImageExtension);
+      const isOctetStream = contentType === 'application/octet-stream' || contentType === 'binary/octet-stream';
+      const isImageLike = contentType.includes('image') || isOctetStream || (contentType === '' && hasImageExtension);
 
       if (!isImageLike) {
         throw new Error(`Invalid content type: ${contentType}. Expected image or octet-stream with image extension.`);
