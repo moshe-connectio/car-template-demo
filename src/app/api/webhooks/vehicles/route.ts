@@ -340,11 +340,31 @@ export async function POST(request: NextRequest) {
     console.log('🔔 Webhook received');
 
     // Parse request body
-    const body = await request.json();
-    console.log('📦 Payload:', JSON.stringify(body, null, 2));
+    let body: any;
+    try {
+      body = await request.json();
+    } catch (parseError) {
+      console.error('❌ Failed to parse JSON payload');
+      console.error(`   Error: ${parseError instanceof Error ? parseError.message : String(parseError)}`);
+      return NextResponse.json(
+        { error: 'Invalid JSON payload. Make sure to use payload.toJsonString() in Zoho, not payload.toString()' },
+        { status: 400 }
+      );
+    }
+
+    console.log('📦 Payload received (first 500 chars):', JSON.stringify(body, null, 2).substring(0, 500));
 
     // Validate basic structure
+    if (!body || typeof body !== 'object') {
+      console.error('❌ Payload is not an object:', typeof body);
+      return NextResponse.json(
+        { error: 'Payload must be a JSON object' },
+        { status: 400 }
+      );
+    }
+
     if (!body.data) {
+      console.error('❌ Missing required field: data');
       return NextResponse.json(
         { error: 'Missing required field: data' },
         { status: 400 }
@@ -352,6 +372,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (!body.crmid) {
+      console.error('❌ Missing required field: crmid');
       return NextResponse.json(
         { error: 'Missing required field: crmid (use crmid as unique identifier)' },
         { status: 400 }
