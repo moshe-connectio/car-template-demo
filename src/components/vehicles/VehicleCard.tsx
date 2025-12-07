@@ -27,9 +27,9 @@ export function VehicleCard({ vehicle }: VehicleCardProps) {
     <div 
       className="group flex flex-col h-full bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 relative"
     >
-      {/* Sold Ribbon */}
+      {/* Sold Ribbon - RTL adjusted */}
       {!vehicle.is_published && (
-        <div className="absolute top-4 -right-8 transform rotate-45 bg-blue-600 text-white font-bold py-1.5 px-12 shadow-lg text-xs z-10">
+        <div className="absolute top-4 -left-8 transform -rotate-45 bg-blue-600 text-white font-bold py-1.5 px-12 shadow-lg text-xs z-10">
           נמכר
         </div>
       )}
@@ -97,11 +97,11 @@ export function VehicleCard({ vehicle }: VehicleCardProps) {
             <span className="text-2xl font-bold text-success">
               {formatPrice(vehicle.price)}
             </span>
-            <span className="text-primary group-hover:translate-x-1 transition-transform inline-flex items-center gap-1">
-              פרטים
+            <span className="text-primary group-hover:-translate-x-1 transition-transform inline-flex items-center gap-1">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
+              פרטים
             </span>
           </div>
         </div>
