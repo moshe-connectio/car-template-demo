@@ -134,7 +134,8 @@ async function downloadImage(imageUrl: string): Promise<{ buffer: Buffer; filena
       const urlLower = url.toLowerCase();
       const hasImageExtension = imageExtensions.some(ext => urlLower.endsWith(ext));
       const isOctetStream = contentType === 'application/octet-stream' || contentType === 'binary/octet-stream';
-      const isImageLike = contentType.includes('image') || isOctetStream || (contentType === '' && hasImageExtension);
+      const isZoho = isZohoWorkdrive;
+      const isImageLike = isZoho || contentType.includes('image') || isOctetStream || (contentType === '' && hasImageExtension);
 
       if (!isImageLike) {
         throw new Error(`Invalid content type: ${contentType}. Expected image or octet-stream with image extension.`);
@@ -279,6 +280,7 @@ async function processAndUploadImages(
       } as VehicleImage;
     } catch (error) {
       console.error(`❌ Failed to process image at position ${img.position}:`, error);
+      console.error(`   URL: ${img.image_url}`);
       // Return null for failed images
       return null;
     }
