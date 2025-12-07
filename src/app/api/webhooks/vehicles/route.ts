@@ -127,8 +127,9 @@ async function downloadImage(imageUrl: string): Promise<{ buffer: Buffer; filena
 
       const contentType = response.headers.get('content-type') || '';
       const headersObj = Object.fromEntries(response.headers.entries());
-      console.log(`📝 Response headers:`, headersObj);
-      console.log(`🖼️ Content-Type: ${contentType}`);
+      console.log(`📝 Response headers:`, JSON.stringify(headersObj, null, 2));
+      console.log(`🖼️ Content-Type: "${contentType}"`);
+      console.log(`📊 Buffer size: ${await response.clone().arrayBuffer().then(ab => ab.byteLength)} bytes`);
 
       const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp'];
       const urlLower = url.toLowerCase();
@@ -143,6 +144,7 @@ async function downloadImage(imageUrl: string): Promise<{ buffer: Buffer; filena
 
       const arrayBuffer = await response.arrayBuffer();
       const buffer = Buffer.from(arrayBuffer);
+      console.log(`✅ Downloaded ${buffer.length} bytes`);
 
       const contentDisposition = response.headers.get('content-disposition');
       let actualFilename = 'image';
@@ -192,7 +194,12 @@ async function downloadImage(imageUrl: string): Promise<{ buffer: Buffer; filena
       throw directErr;
     }
   } catch (error) {
-    console.error(`❌ Error downloading image:`, error);
+    const errorMsg = error instanceof Error ? error.message : String(error);
+    console.error(`❌ Error downloading image from: ${imageUrl}`);
+    console.error(`   Error: ${errorMsg}`);
+    if (error instanceof Error && error.stack) {
+      console.error(`   Stack: ${error.stack}`);
+    }
     throw error;
   }
 }
@@ -245,11 +252,11 @@ async function uploadImageToSupabase(
       });
 
     if (error) {
-      console.error(`❌ Supabase upload error:`, error);
+      console.error(`❌ Supabase upload error for ${filePath}:`, JSON.stringify(error, null, 2));
       throw new Error(`Supabase upload failed: ${error.message}`);
     }
 
-    // Get public URL
+    console.log(`✅ Supabase upload succeeded for ${filePath}`);
     const { data: publicUrlData } = client.storage
       .from('vehicle-images')
       .getPublicUrl(filePath);
@@ -308,8 +315,11 @@ async function processAndUploadImages(
         alt_text: img.alt_text || null,
       } as AddImageInput;
     } catch (error) {
-      console.error(`❌ Failed to process image at position ${img.position}:`, error);
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      console.error(`❌ Failed to process image at position ${img.position}`);
       console.error(`   URL: ${img.image_url}`);
+      console.error(`   Error: ${errorMsg}`);
+      console.error(`   Stack: ${error instanceof Error ? error.stack : 'N/A'}`);
       // Return null for failed images
       return null;
     }
