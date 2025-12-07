@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import { FaFacebook, FaInstagram, FaWhatsapp, FaYoutube, FaCarSide } from 'react-icons/fa6';
+import { FaShoppingCart } from 'react-icons/fa';
 import { Container } from './Container';
+import { CartBadge } from './CartBadge';
 import { APP_CONFIG, ROUTES } from '@core/lib/constants';
 import { dealershipConfig } from '@core/config/site.config';
 
@@ -55,10 +57,26 @@ export function Header() {
               רכבים
               <span className="absolute bottom-0 right-0 w-0 h-0.5 bg-primary group-hover:w-full transition-all duration-300"></span>
             </Link>
+            <Link 
+              href={ROUTES.products} 
+              className="text-gray-700 hover:text-primary font-medium transition-all duration-200 text-sm relative group"
+            >
+              מוצרים
+              <span className="absolute bottom-0 right-0 w-0 h-0.5 bg-primary group-hover:w-full transition-all duration-300"></span>
+            </Link>
           </nav>
 
-          {/* Social Links - Left */}
+          {/* Social Links + Cart - Left */}
           <div className="flex items-center gap-4 shrink-0">
+            <Link
+              href={ROUTES.cart}
+              className="relative text-gray-600 hover:text-primary transition-all duration-200 hover:scale-110 p-1.5 rounded-md hover:bg-gray-100"
+              title="עגלה"
+              aria-label="עגלה"
+            >
+              <FaShoppingCart className="w-5 h-5" />
+              <CartBadge />
+            </Link>
             {socialLinks.map((social) => {
               const Icon = social.icon;
               return (

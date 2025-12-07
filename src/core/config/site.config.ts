@@ -28,6 +28,45 @@ export const dealershipConfig = {
     },
   },
 
+  // Payment Configuration
+  payment: {
+    enabled: true, // Set to false to disable payment system
+    provider: 'stripe' as const, // 'stripe' | 'tranzila' | 'payplus'
+    currency: 'ILS',
+    currencySymbol: '₪',
+    
+    // Available payment methods (customize per client)
+    // Remove methods you don't want to offer
+    availableMethods: [
+      'card',       // Credit/Debit cards
+      'paypal',     // PayPal (requires Stripe PayPal setup)
+      'apple_pay',  // Apple Pay (auto-enabled on iOS)
+      'google_pay', // Google Pay (auto-enabled on Android)
+      // 'bit',     // Bit (Israeli) - Coming soon
+    ] as const,
+    
+    // Stripe specific (if using Stripe)
+    stripe: {
+      // Keys are loaded from environment variables
+      // NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+      // STRIPE_SECRET_KEY
+      
+      // Enable PayPal through Stripe
+      enablePayPal: true,
+      
+      // Enable wallet payments
+      enableWallets: true, // Apple Pay & Google Pay
+    },
+    
+    // Features
+    features: {
+      guestCheckout: true,  // Allow checkout without account
+      savedCards: false,    // Save cards for future purchases (requires user accounts)
+      showSecurityBadges: true, // Show SSL/PCI badges
+      requireBillingAddress: false, // Require billing address
+    },
+  },
+
   // Social Media Links
   social: {
     facebook: 'https://facebook.com/cardealership',
