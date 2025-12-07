@@ -3,7 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { Rubik } from "next/font/google";
 // @ts-ignore - CSS import
 import "./globals.css";
-import { dealershipConfig } from "@/config/dealership.config";
+import { dealershipConfig } from "@core/config/site.config";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",

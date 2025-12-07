@@ -1,9 +1,9 @@
-import { getPublishedVehicles, Vehicle } from '@/lib/vehiclesRepository';
-import { Header } from '@/components/layout/Header';
-import { Footer } from '@/components/layout/Footer';
-import { Container } from '@/components/layout/Container';
-import { VehicleGrid } from '@/components/vehicles/VehicleGrid';
-import { APP_CONFIG, ROUTES } from '@/lib/constants';
+import { getPublishedVehicles, Vehicle } from '@modules/vehicles/lib/repository';
+import { Header } from '@shared/components/layout/Header';
+import { Footer } from '@shared/components/layout/Footer';
+import { Container } from '@shared/components/layout/Container';
+import { VehicleGrid } from '@modules/vehicles/components/VehicleGrid';
+import { APP_CONFIG, ROUTES } from '@core/lib/constants';
 
 export const revalidate = 3600; // ISR - 1 hour for home page
 

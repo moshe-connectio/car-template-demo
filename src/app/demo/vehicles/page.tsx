@@ -1,4 +1,4 @@
-import { getPublishedVehicles, Vehicle } from '@/lib/vehiclesRepository';
+import { getPublishedVehicles, Vehicle } from '@modules/vehicles/lib/repository';
 
 export const revalidate = 60;
 

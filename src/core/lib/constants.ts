@@ -3,7 +3,7 @@
  * Imported from the main dealership config
  */
 
-import { dealershipConfig } from '@/config/dealership.config';
+import { dealershipConfig } from '@core/config/site.config';
 
 export const APP_CONFIG = {
   name: dealershipConfig.business.name,

@@ -1,4 +1,4 @@
-import { Vehicle } from '@/lib/vehiclesRepository';
+import { Vehicle } from '@modules/vehicles/lib/repository';
 import { VehicleCard } from './VehicleCard';
 
 interface VehicleGridProps {

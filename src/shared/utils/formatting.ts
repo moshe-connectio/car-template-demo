@@ -3,7 +3,7 @@
  * Common formatting functions used throughout the application
  */
 
-import { APP_CONFIG } from './constants';
+import { APP_CONFIG } from '@core/lib/constants';
 
 /**
  * Format price with currency symbol

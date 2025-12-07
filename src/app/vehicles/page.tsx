@@ -1,8 +1,8 @@
-import { getPublishedVehicles, deleteSoldVehicles, getUniqueBrands, getUniqueCategories, Vehicle } from '@/lib/vehiclesRepository';
-import { Header } from '@/components/layout/Header';
-import { Footer } from '@/components/layout/Footer';
-import { Container } from '@/components/layout/Container';
-import { FilterableVehicleGrid } from '@/components/vehicles/FilterableVehicleGrid';
+import { getPublishedVehicles, deleteSoldVehicles, getUniqueBrands, getUniqueCategories, Vehicle } from '@modules/vehicles/lib/repository';
+import { Header } from '@shared/components/layout/Header';
+import { Footer } from '@shared/components/layout/Footer';
+import { Container } from '@shared/components/layout/Container';
+import { FilterableVehicleGrid } from '@modules/vehicles/components/FilterableVehicleGrid';
 
 export const revalidate = 60; // ISR - 1 minute
 

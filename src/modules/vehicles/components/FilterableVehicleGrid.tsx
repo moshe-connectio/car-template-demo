@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { Vehicle } from '@/lib/vehiclesRepository';
+import { Vehicle } from '@modules/vehicles/lib/repository';
 import { VehicleFilters, FilterState } from './VehicleFilters';
 import { VehicleGrid } from './VehicleGrid';
 

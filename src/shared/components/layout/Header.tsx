@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { Container } from './Container';
-import { APP_CONFIG, ROUTES } from '@/lib/constants';
+import { APP_CONFIG, ROUTES } from '@core/lib/constants';
 
 export function Header() {
   return (

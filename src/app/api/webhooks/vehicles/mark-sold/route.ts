@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { markVehicleAsSold } from '@/lib/vehiclesRepository';
+import { markVehicleAsSold } from '@modules/vehicles/lib/repository';
 
 /**
  * Webhook endpoint for marking a vehicle as sold (soft delete)

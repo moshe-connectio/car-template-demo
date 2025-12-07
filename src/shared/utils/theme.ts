@@ -3,7 +3,7 @@
  * Helper functions to easily access theme values in components
  */
 
-import { colors, spacing, typography, borderRadius, shadows } from './theme';
+import { colors, spacing, typography, borderRadius, shadows } from '@core/config/theme.config';
 
 /**
  * Get color value from theme

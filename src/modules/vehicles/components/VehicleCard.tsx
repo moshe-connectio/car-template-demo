@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Vehicle } from '@/lib/vehiclesRepository';
-import { formatPrice, formatKilometers, generateVehicleSlug } from '@/lib/utils';
+import { Vehicle } from '@modules/vehicles/lib/repository';
+import { formatPrice, formatKilometers, generateVehicleSlug } from '@shared/utils/formatting';
 import VehicleImageGallery from './VehicleImageGallery';
 
 interface VehicleCardProps {

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { VehicleImage } from '@/lib/vehiclesRepository';
+import { VehicleImage } from '@modules/vehicles/lib/repository';
 
 interface VehicleImageGalleryProps {
   images: VehicleImage[] | null;

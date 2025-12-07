@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerSupabaseClient } from '@/lib/supabaseServerClient';
+import { createServerSupabaseClient } from '@core/lib/supabase';
 import { 
   upsertVehicleByCrmId,
   addImagesToVehicle,
@@ -7,8 +7,8 @@ import {
   CreateVehicleInput, 
   AddImageInput,
   VehicleImage,
-} from '@/lib/vehiclesRepository';
-import { generateVehicleSlug, extractIdFromSlug } from '@/lib/utils';
+} from '@modules/vehicles/lib/repository';
+import { generateVehicleSlug, extractIdFromSlug } from '@shared/utils/formatting';
 
 /**
  * Webhook endpoint for creating/updating vehicles and their images

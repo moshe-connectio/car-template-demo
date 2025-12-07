@@ -1,5 +1,5 @@
-import { getVehicleById, getVehicleByIdSuffix } from '@/lib/vehiclesRepository';
-import { extractIdFromSlug } from '@/lib/utils';
+import { getVehicleById, getVehicleByIdSuffix } from '@modules/vehicles/lib/repository';
+import { extractIdFromSlug } from '@shared/utils/formatting';
 
 export async function GET(
   request: Request,

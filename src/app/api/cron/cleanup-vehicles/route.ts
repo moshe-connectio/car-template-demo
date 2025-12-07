@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { deleteSoldVehicles } from '@/lib/vehiclesRepository';
+import { deleteSoldVehicles } from '@modules/vehicles/lib/repository';
 
 /**
  * Cron Job endpoint for automatic cleanup of sold vehicles

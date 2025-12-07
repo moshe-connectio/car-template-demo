@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { deleteVehicleByCrmId, deleteVehicleById } from '@/lib/vehiclesRepository';
+import { deleteVehicleByCrmId, deleteVehicleById } from '@modules/vehicles/lib/repository';
 
 /**
  * Webhook endpoint for deleting vehicles

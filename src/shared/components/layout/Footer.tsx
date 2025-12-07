@@ -1,5 +1,5 @@
 import { Container } from './Container';
-import { APP_CONFIG, ROUTES, CONTACT_INFO } from '@/lib/constants';
+import { APP_CONFIG, ROUTES, CONTACT_INFO } from '@core/lib/constants';
 
 export function Footer() {
   const currentYear = new Date().getFullYear();

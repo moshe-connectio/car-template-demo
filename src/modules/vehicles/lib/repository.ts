@@ -1,4 +1,4 @@
-import { createServerSupabaseClient } from './supabaseServerClient';
+import { createServerSupabaseClient } from '@core/lib/supabase';
 
 export type VehicleCondition = 'חדש' | '0 ק״מ' | 'משומש';
 
