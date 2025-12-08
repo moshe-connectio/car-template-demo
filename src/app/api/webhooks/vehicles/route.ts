@@ -135,9 +135,20 @@ async function downloadImage(imageUrl: string): Promise<{ buffer: Buffer; filena
       const hasImageExtension = imageExtensions.some(ext => urlLower.endsWith(ext));
       const isOctetStream = contentType === 'application/octet-stream' || contentType === 'binary/octet-stream';
       const isZoho = isZohoWorkdrive;
-      const isImageLike = isZoho || contentType.includes('image') || isOctetStream || (contentType === '' && hasImageExtension);
+      const isImageLike = contentType.includes('image') || isOctetStream || (contentType === '' && hasImageExtension);
 
-      if (!isImageLike) {
+      // If Zoho and content-type is HTML, try to extract real download URL
+      if (isZoho && !isImageLike) {
+        if (triedExtract) {
+          throw new Error(`Zoho response not image even after extraction: ${contentType}`);
+        }
+        triedExtract = true;
+        const extractedUrl = await extractZohoDownloadUrl(url);
+        console.log(`🔄 Zoho HTML detected, retrying with extracted URL: ${extractedUrl}`);
+        return await fetchImage(extractedUrl);
+      }
+
+      if (!isZoho && !isImageLike) {
         throw new Error(`Invalid content type: ${contentType}. Expected image or octet-stream with image extension.`);
       }
 
