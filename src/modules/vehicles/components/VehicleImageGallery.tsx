@@ -70,6 +70,7 @@ export default function VehicleImageGallery({
           fill
           className="object-cover hover:scale-105 transition-transform duration-300"
           priority
+          unoptimized
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 100vw"
           onError={() => {
             // Fallback: if Next.js Image fails, show a regular img tag
@@ -108,6 +109,7 @@ export default function VehicleImageGallery({
                 alt={`Thumbnail ${image.alt_text || `image ${index + 1}`}`}
                 fill
                 className="object-cover"
+                unoptimized
                 sizes="56px"
               />
               <span className="absolute bottom-0.5 right-0.5 bg-black/70 text-white text-xs rounded px-0.5">
