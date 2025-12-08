@@ -441,12 +441,14 @@ export async function POST(request: NextRequest) {
       crmid: payload.crmid,
     });
 
-    // Prepare images array - ensure main_image_url is always position 1 and not duplicated
+    // Prepare images array - include main_image_url as position 1 if provided
     let imagesToProcess = [...(payload.images || [])];
 
-    // Remove any image that matches main_image_url
-    if (createData.main_image_url) {
-      imagesToProcess = imagesToProcess.filter(img => img.image_url !== createData.main_image_url);
+    // בדיקה אם main_image_url כבר קיימת
+    const mainImageExists = createData.main_image_url && imagesToProcess.some(img => img.image_url === createData.main_image_url);
+
+    // לוגיקה: אם לא קיימת, להכניס אותה כראשונה ולשנות position לשאר
+    if (createData.main_image_url && !mainImageExists) {
       imagesToProcess = [
         {
           image_url: createData.main_image_url,
@@ -455,11 +457,11 @@ export async function POST(request: NextRequest) {
         },
         ...imagesToProcess.map((img, idx) => ({
           ...img,
-          position: idx + 2, // positions start at 2
+          position: idx + 2, // מתחיל מ־2
         }))
       ];
     } else {
-      // No main_image_url, just reindex
+      // אם קיימת, לוודא שהיא ב־position 1
       imagesToProcess = imagesToProcess.map((img, idx) => ({
         ...img,
         position: idx + 1,
