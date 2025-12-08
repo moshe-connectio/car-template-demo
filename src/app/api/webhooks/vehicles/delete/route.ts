@@ -25,9 +25,7 @@ import { deleteVehicleByCrmId, deleteVehicleById } from '@modules/vehicles/lib/r
  */
 export async function POST(request: NextRequest) {
   try {
-    console.log('🔔 Delete webhook received');
     const payload = await request.json();
-    console.log('📦 Payload:', JSON.stringify(payload, null, 2));
 
     // Validate payload
     const { crmid, vehicleId } = payload;
@@ -44,7 +42,6 @@ export async function POST(request: NextRequest) {
 
     // Delete by CRM ID (preferred for external integrations)
     if (crmid) {
-      console.log(`🔍 Deleting vehicle by CRM ID: ${crmid}`);
       const wasDeleted = await deleteVehicleByCrmId(crmid);
 
       if (!wasDeleted) {
@@ -66,7 +63,6 @@ export async function POST(request: NextRequest) {
 
     // Delete by vehicle ID (for internal use)
     if (vehicleId) {
-      console.log(`🔍 Deleting vehicle by ID: ${vehicleId}`);
       await deleteVehicleById(vehicleId);
 
       return NextResponse.json({

@@ -55,7 +55,7 @@ import { generateVehicleSlug, extractIdFromSlug } from '@shared/utils/formatting
 type WebhookPayload = {
   crmid: string; // Required - unique identifier for upsert
   data: CreateVehicleInput;
-  images?: AddImageInput[];
+  images?: Omit<AddImageInput, 'vehicle_id'>[];
 };
 
 /**
@@ -201,7 +201,7 @@ async function downloadImage(imageUrl: string): Promise<{ buffer: Buffer; filena
 }
 
 /**
- * Upload image buffer to Supabase Storage
+ * Upload image to Supabase Storage
  */
 async function uploadImageToSupabase(
   imageBuffer: Buffer,
@@ -272,7 +272,7 @@ async function uploadImageToSupabase(
 async function processAndUploadImages(
   vehicleId: string,
   vehicleSlug: string,
-  images: (AddImageInput & { image_url: string })[]
+  images: (Omit<AddImageInput, 'vehicle_id'> & { image_url: string })[]
 ): Promise<AddImageInput[]> {
   // Process all images in parallel
   const imagePromises = images.map(async (img) => {
@@ -398,14 +398,9 @@ export async function POST(request: NextRequest) {
       createData = { ...createData, hand: handValue as any };
     }
 
-    console.log(`🔄 Processing webhook for crmid: ${payload.crmid}`);
-    console.log(`📋 is_published: ${createData.is_published}`);
-
     // Special handling for marking as sold (is_published = false)
     // If is_published is false, only update that field without requiring other data
     if (createData.is_published === false) {
-      console.log(`🔴 Vehicle marked as sold: ${payload.crmid}`);
-      
       const result = await upsertVehicleByCrmId(payload.crmid, {
         ...createData,
         crmid: payload.crmid,
@@ -446,16 +441,25 @@ export async function POST(request: NextRequest) {
       crmid: payload.crmid,
     });
 
-    console.log(`✅ Vehicle ${result.action === 'created' ? 'created' : 'updated'}: ${result.vehicle.id}`);
+    // Prepare images array - include main_image_url as position 1 if provided
+    let imagesToProcess = [...(payload.images || [])];
+
+    // Add main_image_url as primary image (position 1) if provided
+    if (createData.main_image_url) {
+      imagesToProcess.unshift({
+        image_url: createData.main_image_url,
+        position: 1,
+        alt_text: `${createData.title || 'Vehicle'} - Main Image`,
+      });
+    }
 
     // Add images if provided - download, upload to Supabase Storage, and save URLs
     let addedImages: VehicleImage[] = [];
-    if (payload.images && payload.images.length > 0) {
+    if (imagesToProcess.length > 0) {
       try {
         // Filter valid images
-        const validImages = payload.images.filter(img => {
+        const validImages = imagesToProcess.filter(img => {
           if (img.image_url.startsWith('data:image/')) {
-            console.warn(`⚠️ Skipping base64 image at position ${img.position}`);
             return false;
           }
           return true;
@@ -477,12 +481,6 @@ export async function POST(request: NextRequest) {
 
             // Now add the new images to database
             addedImages = await addImagesToVehicle(result.vehicle.id, uploadedImages);
-            console.log(`✅ Added ${addedImages.length} images`);
-          } else {
-            console.warn(`⚠️ No images were successfully uploaded`);
-            if (result.action === 'updated') {
-              console.log(`ℹ️ Keeping existing images`);
-            }
           }
         }
       } catch (error) {

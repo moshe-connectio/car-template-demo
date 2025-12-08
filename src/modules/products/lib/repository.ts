@@ -16,8 +16,6 @@ import type {
  * Get all published products with their primary image and category
  */
 export async function getPublishedProducts(): Promise<ProductWithCategory[]> {
-  console.log('🔍 Fetching published products...');
-  
   const client = createServerSupabaseClient();
   
   const { data, error } = await client
@@ -30,11 +28,9 @@ export async function getPublishedProducts(): Promise<ProductWithCategory[]> {
     .order('created_at', { ascending: false });
 
   if (error) {
-    console.error('❌ Error fetching products:', error);
     throw error;
   }
 
-  console.log(`✅ Successfully fetched ${data?.length || 0} products`);
   return data || [];
 }
 
@@ -42,8 +38,6 @@ export async function getPublishedProducts(): Promise<ProductWithCategory[]> {
  * Get a single product by slug with all images
  */
 export async function getProductBySlug(slug: string): Promise<ProductWithImages | null> {
-  console.log(`🔍 Fetching product by slug: ${slug}`);
-  
   const client = createServerSupabaseClient();
   
   const { data, error } = await client
@@ -59,10 +53,8 @@ export async function getProductBySlug(slug: string): Promise<ProductWithImages 
 
   if (error) {
     if (error.code === 'PGRST116') {
-      console.log('⚠️ Product not found');
       return null;
     }
-    console.error('❌ Error fetching product:', error);
     throw error;
   }
 
@@ -71,7 +63,6 @@ export async function getProductBySlug(slug: string): Promise<ProductWithImages 
     data.images.sort((a: ProductImage, b: ProductImage) => a.position - b.position);
   }
 
-  console.log(`✅ Successfully fetched product: ${data?.name}`);
   return data;
 }
 
@@ -90,11 +81,9 @@ export async function getCategories(): Promise<Category[]> {
     .order('display_order', { ascending: true });
 
   if (error) {
-    console.error('❌ Error fetching categories:', error);
     throw error;
   }
 
-  console.log(`✅ Successfully fetched ${data?.length || 0} categories`);
   return data || [];
 }
 
@@ -102,8 +91,6 @@ export async function getCategories(): Promise<Category[]> {
  * Get products by category slug
  */
 export async function getProductsByCategory(categorySlug: string): Promise<ProductWithCategory[]> {
-  console.log(`🔍 Fetching products for category: ${categorySlug}`);
-  
   const client = createServerSupabaseClient();
   
   // First get the category
@@ -115,7 +102,6 @@ export async function getProductsByCategory(categorySlug: string): Promise<Produ
     .single();
 
   if (!category) {
-    console.log('⚠️ Category not found');
     return [];
   }
 
@@ -131,11 +117,9 @@ export async function getProductsByCategory(categorySlug: string): Promise<Produ
     .order('created_at', { ascending: false });
 
   if (error) {
-    console.error('❌ Error fetching products by category:', error);
     throw error;
   }
 
-  console.log(`✅ Successfully fetched ${data?.length || 0} products`);
   return data || [];
 }
 
@@ -143,8 +127,6 @@ export async function getProductsByCategory(categorySlug: string): Promise<Produ
  * Get featured products
  */
 export async function getFeaturedProducts(limit: number = 6): Promise<ProductWithCategory[]> {
-  console.log(`🔍 Fetching ${limit} featured products...`);
-  
   const client = createServerSupabaseClient();
   
   const { data, error } = await client
@@ -159,11 +141,9 @@ export async function getFeaturedProducts(limit: number = 6): Promise<ProductWit
     .limit(limit);
 
   if (error) {
-    console.error('❌ Error fetching featured products:', error);
     throw error;
   }
 
-  console.log(`✅ Successfully fetched ${data?.length || 0} featured products`);
   return data || [];
 }
 

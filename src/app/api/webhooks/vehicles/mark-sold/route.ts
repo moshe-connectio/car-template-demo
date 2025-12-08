@@ -22,9 +22,7 @@ import { markVehicleAsSold } from '@modules/vehicles/lib/repository';
  */
 export async function POST(request: NextRequest) {
   try {
-    console.log('🔔 Mark as sold webhook received');
     const payload = await request.json();
-    console.log('📦 Payload:', JSON.stringify(payload, null, 2));
 
     // Validate payload
     const { crmid } = payload;
@@ -38,8 +36,6 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-
-    console.log(`🔍 Marking vehicle as sold: ${crmid}`);
 
     // Mark vehicle as sold (soft delete)
     const wasMarked = await markVehicleAsSold(crmid);
