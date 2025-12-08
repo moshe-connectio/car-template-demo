@@ -129,7 +129,6 @@ async function downloadImage(imageUrl: string): Promise<{ buffer: Buffer; filena
       const headersObj = Object.fromEntries(response.headers.entries());
       console.log(`📝 Response headers:`, JSON.stringify(headersObj, null, 2));
       console.log(`🖼️ Content-Type: "${contentType}"`);
-      console.log(`📊 Buffer size: ${await response.clone().arrayBuffer().then(ab => ab.byteLength)} bytes`);
 
       const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp'];
       const urlLower = url.toLowerCase();
