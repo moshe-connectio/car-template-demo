@@ -2,7 +2,7 @@
 
 ## Quick Start
 
-The car dealership template now supports up to **10 images per vehicle** (1 primary + 9 secondary images). This guide walks you through setting it up and using it.
+The car dealership template now supports up to **20 images per vehicle** (1 primary + 19 secondary images). This guide walks you through setting it up and using it.
 
 ## Prerequisites
 
@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS vehicle_images (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   vehicle_id UUID NOT NULL REFERENCES vehicles(id) ON DELETE CASCADE,
   image_url TEXT NOT NULL,
-  position INTEGER NOT NULL CHECK (position >= 1 AND position <= 10),
+  position INTEGER NOT NULL CHECK (position >= 1 AND position <= 20),
   alt_text TEXT,
   uploaded_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
   UNIQUE (vehicle_id, position)
@@ -165,7 +165,7 @@ function MyComponent({ vehicle }: { vehicle: Vehicle }) {
 - **Primary Image (Position 1)**: Displayed prominently with hover zoom effect
 - **Thumbnail Navigation**: Up to 9 secondary images (positions 2-10)
 - **Image Counters**: Shows total images available
-- **Position Badges**: Visible on each image showing its position (1-10)
+- **Position Badges**: Visible on each image showing its position (1-20)
 - **Responsive Design**: Works on mobile, tablet, and desktop
 - **Accessibility**: Alt text support for screen readers
 - **Smooth Transitions**: CSS animations for better UX
@@ -181,7 +181,7 @@ function MyComponent({ vehicle }: { vehicle: Vehicle }) {
 ### Requirements
 
 - **Image URLs**: Must be valid and publicly accessible
-- **Position**: Must be between 1-10
+- **Position**: Must be between 1-20
 - **Uniqueness**: Each position per vehicle must be unique
 - **Alt Text**: Recommended for accessibility and SEO
 
@@ -226,7 +226,7 @@ CREATE TABLE vehicle_images (
 **Constraints:**
 - `FOREIGN KEY (vehicle_id)`: Cascade delete removes images when vehicle is deleted
 - `UNIQUE (vehicle_id, position)`: One image per position per vehicle
-- `CHECK position >= 1 AND position <= 10`: Position must be 1-10
+- `CHECK position >= 1 AND position <= 20`: Position must be 1-20
 
 ## Graceful Fallback
 
@@ -260,7 +260,7 @@ This allows you to deploy the code before creating the database table.
 
 **Error:** "Image position must be between 1 and 10"
 
-**Solution:** Ensure all image positions are integers between 1-10, with each position being unique per vehicle.
+**Solution:** Ensure all image positions are integers between 1-20, with each position being unique per vehicle.
 
 ## Advanced Usage
 
@@ -274,7 +274,7 @@ When updating a vehicle through the webhook, you can:
 
 ### Image Ordering
 
-Images are always displayed in order by position (1-10). To reorder:
+Images are always displayed in order by position (1-20). To reorder:
 
 ```typescript
 await reorderVehicleImages('vehicle-id', [

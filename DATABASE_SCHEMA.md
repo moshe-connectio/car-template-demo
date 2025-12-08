@@ -41,14 +41,14 @@ CREATE INDEX idx_vehicles_created_at ON vehicles(created_at DESC);
 
 ### `vehicle_images` (NEW - Needs to be created)
 
-Stores up to 10 images per vehicle (1 primary + 9 secondary).
+Stores up to 20 images per vehicle (1 primary + 19 secondary).
 
 ```sql
 CREATE TABLE vehicle_images (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   vehicle_id UUID NOT NULL REFERENCES vehicles(id) ON DELETE CASCADE,
   image_url TEXT NOT NULL,
-  position INTEGER NOT NULL CHECK (position >= 1 AND position <= 10),
+  position INTEGER NOT NULL CHECK (position >= 1 AND position <= 20),
   alt_text TEXT,
   uploaded_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
   UNIQUE (vehicle_id, position)
@@ -75,7 +75,7 @@ CREATE TABLE IF NOT EXISTS vehicle_images (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   vehicle_id UUID NOT NULL REFERENCES vehicles(id) ON DELETE CASCADE,
   image_url TEXT NOT NULL,
-  position INTEGER NOT NULL CHECK (position >= 1 AND position <= 10),
+  position INTEGER NOT NULL CHECK (position >= 1 AND position <= 20),
   alt_text TEXT,
   uploaded_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
   UNIQUE (vehicle_id, position)
@@ -84,6 +84,22 @@ CREATE TABLE IF NOT EXISTS vehicle_images (
 -- Create indexes for better performance
 CREATE INDEX IF NOT EXISTS idx_vehicle_images_vehicle_id ON vehicle_images(vehicle_id);
 CREATE INDEX IF NOT EXISTS idx_vehicle_images_position ON vehicle_images(vehicle_id, position);
+
+-- If you previously created the table with a 10-image limit, update the constraint to allow 20 images
+DO $$
+BEGIN
+  -- Drop old constraint if it exists
+  IF EXISTS (
+    SELECT 1 FROM pg_constraint
+    WHERE conname = 'vehicle_images_position_check'
+      AND conrelid = 'vehicle_images'::regclass
+  ) THEN
+    EXECUTE 'ALTER TABLE vehicle_images DROP CONSTRAINT vehicle_images_position_check';
+  END IF;
+
+  -- Add new constraint allowing positions 1-20
+  EXECUTE 'ALTER TABLE vehicle_images ADD CONSTRAINT vehicle_images_position_check CHECK (position >= 1 AND position <= 20)';
+END $$;
 
 -- Enable RLS (Row Level Security) if needed
 ALTER TABLE vehicle_images ENABLE ROW LEVEL SECURITY;
@@ -198,7 +214,7 @@ export type VehicleImage = {
   id: string;              // UUID
   vehicle_id: string;      // UUID, references vehicles.id
   image_url: string;       // URL to image
-  position: number;        // 1-10 (1 is primary image)
+  position: number;        // 1-20 (1 is primary image)
   alt_text: string | null; // Accessibility text
   uploaded_at: string;     // ISO timestamp
 };
@@ -206,7 +222,7 @@ export type VehicleImage = {
 
 ## Notes
 
-- **Position Field**: Images are ordered by position 1-10. Position 1 is the primary/main image
+- **Position Field**: Images are ordered by position 1-20. Position 1 is the primary/main image
 - **Cascade Delete**: If a vehicle is deleted, all associated images are automatically deleted
-- **Unique Constraint**: Each vehicle can only have one image at each position (1-10)
+- **Unique Constraint**: Each vehicle can only have one image at each position (1-20)
 - **Fallback Behavior**: If the vehicle_images table doesn't exist, the application will gracefully fall back to fetching vehicles without image relationships

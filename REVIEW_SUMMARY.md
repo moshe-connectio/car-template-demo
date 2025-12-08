@@ -69,7 +69,7 @@
 - ✅ Parallel image processing
 - ✅ Supabase Storage integration
 - ✅ Conditional image deletion on update
-- ✅ Support for 1-10 images per vehicle
+- ✅ Support for 1-20 images per vehicle
 
 ### Vehicle Management
 - ✅ UPSERT by CRMID (no duplicates)

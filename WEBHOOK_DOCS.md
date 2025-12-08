@@ -104,7 +104,7 @@ Content-Type: application/json
 | `data.short_description` | string | Brief description of the vehicle |
 | `data.external_id` | string | External identifier from your system |
 | `data.raw_data` | object | Any additional JSON data |
-| `images` | array | Array of image objects (max 10 images, positions 1-10) |
+| `images` | array | Array of image objects (max 20 images, positions 1-20) |
 
 **Available Categories:**
 - SUV
@@ -138,7 +138,7 @@ Each image in the `images` array:
 | Field | Type | Description |
 |-------|------|-------------|
 | `image_url` | string | **HTTPS URL only** (no base64 supported in serverless environment) |
-| `position` | number | Position 1-10 (1 = primary image, rest are secondary) |
+| `position` | number | Position 1-20 (1 = primary image, rest are secondary) |
 | `alt_text` | string | Optional: Alternative text for accessibility |
 
 ---

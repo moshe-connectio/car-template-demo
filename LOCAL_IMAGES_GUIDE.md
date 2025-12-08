@@ -168,8 +168,8 @@ http://cdn.example.com/photo.png
 |----------|-------|
 | Max Size | 5MB |
 | Allowed Types | JPEG, PNG, WebP, GIF |
-| Max per Vehicle | 10 |
-| Position Range | 1-10 |
+| Max per Vehicle | 20 |
+| Position Range | 1-20 |
 
 ## Database Storage
 
@@ -180,7 +180,7 @@ CREATE TABLE vehicle_images (
   id UUID PRIMARY KEY,
   vehicle_id UUID REFERENCES vehicles(id),
   image_url TEXT,              -- Stores: /vehicles/images/{id}/image-1.jpg
-  position INTEGER,             -- 1-10
+  position INTEGER,             -- 1-20
   alt_text TEXT,
   uploaded_at TIMESTAMP
 );
@@ -284,7 +284,7 @@ Images are automatically served from `/public/vehicles/images/`:
 
 ### Images not showing
 **Solution:**
-1. Check that position is between 1-10
+1. Check that position is between 1-20
 2. Verify image_url format is correct
 3. Check `/public/vehicles/images/` directory exists
 

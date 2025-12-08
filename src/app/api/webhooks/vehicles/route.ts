@@ -63,8 +63,6 @@ type WebhookPayload = {
  */
 async function extractZohoDownloadUrl(htmlPageUrl: string): Promise<string> {
   try {
-    console.log(`🔍 Extracting download URL from Zoho WorkDrive page: ${htmlPageUrl}`);
-    
     // Fetch the HTML page
     const response = await fetch(htmlPageUrl, {
       headers: {
@@ -87,11 +85,9 @@ async function extractZohoDownloadUrl(htmlPageUrl: string): Promise<string> {
     }
 
     const actualDownloadUrl = downloadUrlMatch[1];
-    console.log(`✅ Extracted Zoho download URL: ${actualDownloadUrl}`);
-    
     return actualDownloadUrl;
   } catch (error) {
-    console.error(`❌ Error extracting Zoho download URL:`, error);
+    console.error(`❌ Error extracting Zoho URL`);
     throw error;
   }
 }
@@ -114,7 +110,6 @@ async function downloadImage(imageUrl: string): Promise<{ buffer: Buffer; filena
     let triedExtract = false;
 
     const fetchImage = async (url: string) => {
-      console.log(`📥 Downloading from: ${url}`);
       const response = await fetch(url, {
         headers: {
           'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
@@ -126,9 +121,6 @@ async function downloadImage(imageUrl: string): Promise<{ buffer: Buffer; filena
       }
 
       const contentType = response.headers.get('content-type') || '';
-      const headersObj = Object.fromEntries(response.headers.entries());
-      console.log(`📝 Response headers:`, JSON.stringify(headersObj, null, 2));
-      console.log(`🖼️ Content-Type: "${contentType}"`);
 
       const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp'];
       const urlLower = url.toLowerCase();
@@ -144,7 +136,6 @@ async function downloadImage(imageUrl: string): Promise<{ buffer: Buffer; filena
         }
         triedExtract = true;
         const extractedUrl = await extractZohoDownloadUrl(url);
-        console.log(`🔄 Zoho HTML detected, retrying with extracted URL: ${extractedUrl}`);
         return await fetchImage(extractedUrl);
       }
 
@@ -154,7 +145,6 @@ async function downloadImage(imageUrl: string): Promise<{ buffer: Buffer; filena
 
       const arrayBuffer = await response.arrayBuffer();
       const buffer = Buffer.from(arrayBuffer);
-      console.log(`✅ Downloaded ${buffer.length} bytes`);
 
       const contentDisposition = response.headers.get('content-disposition');
       let actualFilename = 'image';
@@ -205,11 +195,7 @@ async function downloadImage(imageUrl: string): Promise<{ buffer: Buffer; filena
     }
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : String(error);
-    console.error(`❌ Error downloading image from: ${imageUrl}`);
-    console.error(`   Error: ${errorMsg}`);
-    if (error instanceof Error && error.stack) {
-      console.error(`   Stack: ${error.stack}`);
-    }
+    console.error(`❌ Download failed: ${errorMsg}`);
     throw error;
   }
 }
@@ -240,9 +226,6 @@ async function uploadImageToSupabase(
     const fileName = `${position}-${timestamp}.${ext}`;
     const filePath = `${folderPath}/${fileName}`;
 
-    console.log(`📤 Uploading image to Supabase: ${filePath}`);
-    console.log(`   Buffer size: ${imageBuffer.length} bytes`);
-
     // Choose content type based on source
     const ct = (sourceContentType && sourceContentType.toLowerCase().startsWith('image/'))
       ? sourceContentType
@@ -262,22 +245,23 @@ async function uploadImageToSupabase(
       });
 
     if (error) {
-      console.error(`❌ Supabase upload error for ${filePath}:`, JSON.stringify(error, null, 2));
+      console.error(`❌ Supabase upload error:`, JSON.stringify(error, null, 2));
       throw new Error(`Supabase upload failed: ${error.message}`);
     }
 
-    console.log(`✅ Supabase upload succeeded for ${filePath}`);
-    const { data: publicUrlData } = client.storage
+    // Get public URL
+    const publicUrlData = client.storage
       .from('vehicle-images')
       .getPublicUrl(filePath);
 
-    const publicUrl = publicUrlData.publicUrl;
-    console.log(`✅ Image uploaded successfully`);
-    console.log(`   URL: ${publicUrl}`);
+    if (!publicUrlData || !publicUrlData.data || !publicUrlData.data.publicUrl) {
+      throw new Error('Failed to generate public URL');
+    }
 
-    return publicUrl;
+    return publicUrlData.data.publicUrl;
   } catch (error) {
-    console.error(`❌ Error uploading image to Supabase:`, error);
+    const msg = error instanceof Error ? error.message : String(error);
+    console.error(`❌ Upload error: ${msg}`);
     throw error;
   }
 }
@@ -290,13 +274,9 @@ async function processAndUploadImages(
   vehicleSlug: string,
   images: (AddImageInput & { image_url: string })[]
 ): Promise<AddImageInput[]> {
-  console.log(`🖼️ Processing ${images.length} images in parallel...`);
-
   // Process all images in parallel
   const imagePromises = images.map(async (img) => {
     try {
-      console.log(`🖼️ Processing image at position ${img.position}: ${img.image_url}`);
-
       // Skip if URL is base64
       if (img.image_url.startsWith('data:image/')) {
         console.warn(`⚠️ Skipping base64 image at position ${img.position}`);
@@ -304,7 +284,6 @@ async function processAndUploadImages(
       }
 
       // Download image
-      console.log(`⬇️ Downloading image from: ${img.image_url}`);
       const { buffer: imageBuffer, filename: originalFileName, contentType } = await downloadImage(img.image_url);
 
       // Upload to Supabase Storage
@@ -327,9 +306,6 @@ async function processAndUploadImages(
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : String(error);
       console.error(`❌ Failed to process image at position ${img.position}`);
-      console.error(`   URL: ${img.image_url}`);
-      console.error(`   Error: ${errorMsg}`);
-      console.error(`   Stack: ${error instanceof Error ? error.stack : 'N/A'}`);
       // Return null for failed images
       return null;
     }
@@ -347,26 +323,21 @@ async function processAndUploadImages(
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('🔔 Webhook received');
-
     // Parse request body
     let body: any;
     try {
       body = await request.json();
     } catch (parseError) {
-      console.error('❌ Failed to parse JSON payload');
-      console.error(`   Error: ${parseError instanceof Error ? parseError.message : String(parseError)}`);
+      console.error('❌ Invalid JSON');
       return NextResponse.json(
-        { error: 'Invalid JSON payload. Make sure to use payload.toJsonString() in Zoho, not payload.toString()' },
+        { error: 'Invalid JSON payload' },
         { status: 400 }
       );
     }
 
-    console.log('📦 Payload received (first 500 chars):', JSON.stringify(body, null, 2).substring(0, 500));
-
     // Validate basic structure
     if (!body || typeof body !== 'object') {
-      console.error('❌ Payload is not an object:', typeof body);
+      console.error('❌ Invalid payload');
       return NextResponse.json(
         { error: 'Payload must be a JSON object' },
         { status: 400 }
@@ -384,7 +355,7 @@ export async function POST(request: NextRequest) {
     if (!body.crmid) {
       console.error('❌ Missing required field: crmid');
       return NextResponse.json(
-        { error: 'Missing required field: crmid (use crmid as unique identifier)' },
+        { error: 'Missing required field: crmid' },
         { status: 400 }
       );
     }
@@ -481,8 +452,6 @@ export async function POST(request: NextRequest) {
     let addedImages: VehicleImage[] = [];
     if (payload.images && payload.images.length > 0) {
       try {
-        console.log(`📸 Processing ${payload.images.length} images...`);
-        
         // Filter valid images
         const validImages = payload.images.filter(img => {
           if (img.image_url.startsWith('data:image/')) {
@@ -493,7 +462,7 @@ export async function POST(request: NextRequest) {
         });
 
         if (validImages.length > 0) {
-          // If updating existing vehicle with new images, delete old images first
+          // Process and upload all images first
           const uploadedImages = await processAndUploadImages(
             result.vehicle.id,
             createData.slug,
@@ -501,15 +470,19 @@ export async function POST(request: NextRequest) {
           );
 
           if (uploadedImages.length > 0) {
+            // Only delete old images AFTER we successfully uploaded new ones
             if (result.action === 'updated') {
-              console.log(`🗑️ Deleting old images before adding new ones (new uploads succeeded)...`);
               await deleteVehicleImages(result.vehicle.id);
             }
 
+            // Now add the new images to database
             addedImages = await addImagesToVehicle(result.vehicle.id, uploadedImages);
-            console.log(`✅ Added ${addedImages.length} images to vehicle`);
-          } else if (result.action === 'updated') {
-            console.log(`ℹ️ No new images uploaded; keeping existing images for vehicle ${result.vehicle.id}`);
+            console.log(`✅ Added ${addedImages.length} images`);
+          } else {
+            console.warn(`⚠️ No images were successfully uploaded`);
+            if (result.action === 'updated') {
+              console.log(`ℹ️ Keeping existing images`);
+            }
           }
         }
       } catch (error) {

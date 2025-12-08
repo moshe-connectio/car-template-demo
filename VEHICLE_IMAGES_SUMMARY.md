@@ -2,7 +2,7 @@
 
 ## Overview
 
-Successfully implemented a complete vehicle images management system supporting **up to 10 images per vehicle** (1 primary + 9 secondary images). This feature integrates seamlessly with the existing car dealership template.
+Successfully implemented a complete vehicle images management system supporting **up to 20 images per vehicle** (1 primary + 19 secondary images). This feature integrates seamlessly with the existing car dealership template.
 
 ## What Was Implemented
 
@@ -14,7 +14,7 @@ export type VehicleImage = {
   id: string;              // UUID
   vehicle_id: string;      // UUID, references vehicles.id
   image_url: string;       // URL to image
-  position: number;        // 1-10 (1 is primary image)
+  position: number;        // 1-20 (1 is primary image)
   alt_text: string | null; // Accessibility text
   uploaded_at: string;     // ISO timestamp
 };
@@ -24,7 +24,7 @@ export type VehicleImage = {
 - Added `images: VehicleImage[] | null` field to include related images
 
 **New Table: `vehicle_images`**
-- Stores up to 10 images per vehicle (positions 1-10)
+- Stores up to 20 images per vehicle (positions 1-20)
 - Automatic cascade delete when vehicle is deleted
 - Unique constraint on vehicle_id + position
 - Properly indexed for performance
@@ -49,7 +49,7 @@ export type VehicleImage = {
 
 **All functions include:**
 - Comprehensive error handling with descriptive messages
-- Position validation (1-10 range)
+- Position validation (1-20 range)
 - Unique constraint enforcement
 - Logging for debugging
 - TypeScript type safety
@@ -76,8 +76,8 @@ Now supports optional `images` field for all actions:
 - Location: `src/components/vehicles/VehicleImageGallery.tsx`
 - Features:
   - Primary image display with hover zoom effect
-  - Thumbnail navigation (up to 9 secondary images)
-  - Image position badges (1-10)
+  - Thumbnail navigation (up to 19 secondary images)
+  - Image position badges (1-20)
   - Image counter showing total images
   - Smooth transitions and animations
   - Responsive design (mobile/tablet/desktop)
@@ -134,7 +134,7 @@ Now supports optional `images` field for all actions:
 **Runtime Behavior:**
 - ✅ Graceful fallback when table doesn't exist
 - ✅ Proper error handling on all functions
-- ✅ Validation of image positions (1-10)
+- ✅ Validation of image positions (1-20)
 - ✅ Unique constraint enforcement
 - ✅ Cascade delete protection
 
@@ -184,7 +184,7 @@ Now supports optional `images` field for all actions:
 
 | Commit | Files | Message |
 |--------|-------|---------|
-| 0df2515 | 2 | feat: add vehicle images support with up to 10 images per vehicle |
+| 0df2515 | 2 | feat: add vehicle images support with up to 20 images per vehicle |
 | 7f94476 | 2 | feat: add VehicleImageGallery component for displaying multiple vehicle images |
 | 6ce7522 | 1 | docs: add comprehensive vehicle images documentation to webhook API |
 | 661e112 | 1 | docs: add comprehensive vehicle images implementation guide |
@@ -279,7 +279,7 @@ Images are automatically displayed in the `VehicleCard` component:
 │      Supabase PostgreSQL Database                   │
 │  ├─ vehicles table                                  │
 │  └─ vehicle_images table (NEW)                      │
-│     └─ Positions 1-10 per vehicle                   │
+│     └─ Positions 1-20 per vehicle                   │
 │     └─ Cascade delete on vehicle removal            │
 └─────────────────────────────────────────────────────┘
                      │

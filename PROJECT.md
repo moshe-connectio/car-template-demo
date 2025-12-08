@@ -108,7 +108,7 @@ public/
 | id | uuid | PK, default: gen_random_uuid() | Unique identifier |
 | vehicle_id | uuid | FK to vehicles(id) | Reference to vehicle |
 | image_url | text | not null | Image URL (from Supabase Storage) |
-| position | integer | 1-10, not null | Image order (1 = primary) |
+| position | integer | 1-20, not null | Image order (1 = primary) |
 | alt_text | text | nullable | Image description |
 | uploaded_at | timestamptz | default: now() | Upload timestamp |
 
