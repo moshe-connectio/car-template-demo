@@ -444,13 +444,28 @@ export async function POST(request: NextRequest) {
     // Prepare images array - include main_image_url as position 1 if provided
     let imagesToProcess = [...(payload.images || [])];
 
-    // Add main_image_url as primary image (position 1) if provided
-    if (createData.main_image_url) {
-      imagesToProcess.unshift({
-        image_url: createData.main_image_url,
-        position: 1,
-        alt_text: `${createData.title || 'Vehicle'} - Main Image`,
-      });
+    // בדיקה אם main_image_url כבר קיימת
+    const mainImageExists = createData.main_image_url && imagesToProcess.some(img => img.image_url === createData.main_image_url);
+
+    // לוגיקה: אם לא קיימת, להכניס אותה כראשונה ולשנות position לשאר
+    if (createData.main_image_url && !mainImageExists) {
+      imagesToProcess = [
+        {
+          image_url: createData.main_image_url,
+          position: 1,
+          alt_text: `${createData.title || 'Vehicle'} - Main Image`,
+        },
+        ...imagesToProcess.map((img, idx) => ({
+          ...img,
+          position: idx + 2, // מתחיל מ־2
+        }))
+      ];
+    } else {
+      // אם קיימת, לוודא שהיא ב־position 1
+      imagesToProcess = imagesToProcess.map((img, idx) => ({
+        ...img,
+        position: idx + 1,
+      }));
     }
 
     // Add images if provided - download, upload to Supabase Storage, and save URLs
