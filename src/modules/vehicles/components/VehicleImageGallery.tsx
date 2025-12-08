@@ -63,7 +63,7 @@ export default function VehicleImageGallery({
   return (
     <div className="w-full">
       {/* Main Image Display */}
-      <div className={`relative w-full ${imageHeight} bg-gray-100 rounded-lg overflow-hidden mb-2 p-3`}>
+      <div className={`relative w-full ${imageHeight} bg-gray-100 rounded-lg overflow-hidden mb-2 sm:mb-3 p-2 sm:p-3`}>
         <Image
           src={displayedImage.image_url}
           alt={displayedImage.alt_text || vehicleTitle}

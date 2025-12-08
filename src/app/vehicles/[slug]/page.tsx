@@ -140,17 +140,17 @@ export default function VehicleDetailPage({ params }: VehicleDetailPageProps) {
               </div>
             )}
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
               {/* Left Column - Images */}
               <div className="lg:col-span-2">
                 <div className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100">
-                  <div className="p-6">
+                  <div className="p-4 sm:p-6">
                     <VehicleImageGallery 
                       images={vehicle.images} 
                       vehicleTitle={vehicle.title}
                       selectedIndex={selectedImageIndex}
                       onImageChange={setSelectedImageIndex}
-                      imageHeight="h-[550px]"
+                      imageHeight="h-72 sm:h-96 lg:h-[550px]"
                     />
                   </div>
                 </div>
@@ -159,7 +159,7 @@ export default function VehicleDetailPage({ params }: VehicleDetailPageProps) {
               {/* Right Column - Details */}
               <div className="lg:col-span-1">
                 {/* Title & Status */}
-                <div className="mb-6">
+                <div className="mb-4 sm:mb-6">
                   <h1 className="text-3xl font-bold text-gray-900 mb-2">
                     {vehicle.title}
                   </h1>
@@ -174,15 +174,15 @@ export default function VehicleDetailPage({ params }: VehicleDetailPageProps) {
                 </div>
 
                 {/* Price */}
-                <div className="bg-linear-to-br from-success/10 to-primary/10 rounded-lg p-6 mb-6 border border-success/20">
-                  <p className="text-gray-600 text-sm mb-2">מחיר</p>
-                  <p className="text-4xl font-bold text-success">
+                <div className="bg-linear-to-br from-success/10 to-primary/10 rounded-lg p-4 sm:p-6 mb-4 sm:mb-6 border border-success/20">
+                  <p className="text-gray-600 text-xs sm:text-sm mb-2">מחיר</p>
+                  <p className="text-3xl sm:text-4xl font-bold text-success">
                     {formatPrice(vehicle.price)}
                   </p>
                 </div>
 
                 {/* Specs Grid */}
-                <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
+                <div className="bg-white rounded-lg border border-gray-200 p-4 sm:p-6 mb-4 sm:mb-6">
                   <h2 className="font-bold text-gray-900 mb-4">מפרט טכני</h2>
                   
                   <div className="space-y-4">
@@ -248,7 +248,7 @@ export default function VehicleDetailPage({ params }: VehicleDetailPageProps) {
 
                 {/* Description */}
                 {vehicle.short_description && (
-                  <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
+                  <div className="bg-white rounded-lg border border-gray-200 p-4 sm:p-6 mb-4 sm:mb-6">
                     <h2 className="font-bold text-gray-900 mb-3">תיאור</h2>
                     <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
                       {vehicle.short_description}
@@ -257,16 +257,16 @@ export default function VehicleDetailPage({ params }: VehicleDetailPageProps) {
                 )}
 
                 {/* CTA Buttons */}
-                <div className="space-y-3">
+                <div className="space-y-2 sm:space-y-3">
                   {vehicle.is_published ? (
                     <>
-                      <button className="w-full bg-primary text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2">
+                      <button className="w-full bg-primary text-white font-bold py-2 sm:py-3 px-4 text-sm sm:text-base rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2">
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                         </svg>
                         צור קשר לשאלות
                       </button>
-                      <button className="w-full border-2 border-primary text-primary font-bold py-3 px-4 rounded-lg hover:bg-primary/5 transition-colors flex items-center justify-center gap-2">
+                      <button className="w-full border-2 border-primary text-primary font-bold py-2 sm:py-3 px-4 text-sm sm:text-base rounded-lg hover:bg-primary/5 transition-colors flex items-center justify-center gap-2">
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                         </svg>
@@ -285,7 +285,7 @@ export default function VehicleDetailPage({ params }: VehicleDetailPageProps) {
                 {/* Back Link */}
                 <Link
                   href="/vehicles"
-                  className="mt-6 text-primary hover:underline text-center block font-medium"
+                  className="mt-4 sm:mt-6 text-primary hover:underline text-center block font-medium text-sm sm:text-base"
                 >
                   ← חזור לרשימת הרכבים
                 </Link>
