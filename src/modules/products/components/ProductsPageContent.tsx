@@ -154,7 +154,7 @@ function ProductCardSimple({ product }: { product: ProductWithCategory & { image
   const addItem = useCart((state) => state.addItem);
 
   return (
-    <div className="group bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden">
+    <div className="group bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden flex flex-col">
       {/* Image */}
       <Link href={`/products/${product.slug}`} className="block relative aspect-square bg-gray-100 overflow-hidden">
         {product.images && product.images.length > 0 && (
@@ -173,28 +173,30 @@ function ProductCardSimple({ product }: { product: ProductWithCategory & { image
       </Link>
 
       {/* Content */}
-      <div className="p-3 md:p-4">
-        <Link href={`/products/${product.slug}`}>
-          <h3 className="font-semibold text-gray-900 mb-1 line-clamp-2 group-hover:text-primary transition-colors text-sm md:text-base">
-            {product.name}
-          </h3>
-        </Link>
+      <div className="px-3 pt-3 pb-2 md:px-4 md:pt-4 md:pb-3 flex flex-col gap-1.5 md:gap-2">
+        <div className="flex flex-col gap-1 md:gap-1.5">
+          <Link href={`/products/${product.slug}`}>
+            <h3 className="font-semibold text-gray-900 mb-1 line-clamp-2 group-hover:text-primary transition-colors text-sm md:text-base">
+              {product.name}
+            </h3>
+          </Link>
 
-        {product.short_description && (
-          <p className="text-xs md:text-sm text-gray-600 mb-2 md:mb-3 line-clamp-1">
-            {product.short_description}
-          </p>
-        )}
-
-        <div className="flex items-center gap-1.5 md:gap-2 mb-2 md:mb-3">
-          <span className="text-base md:text-lg font-bold text-gray-900">
-            {formatPrice(product.price)}
-          </span>
-          {product.compare_at_price && product.compare_at_price > product.price && (
-            <span className="text-xs md:text-sm text-gray-500 line-through">
-              {formatPrice(product.compare_at_price)}
-            </span>
+          {product.short_description && (
+            <p className="text-xs md:text-sm text-gray-600 mb-1.5 md:mb-2 line-clamp-1">
+              {product.short_description}
+            </p>
           )}
+
+          <div className="flex items-center gap-1.5 md:gap-2">
+            <span className="text-base md:text-lg font-bold text-gray-900">
+              {formatPrice(product.price)}
+            </span>
+            {product.compare_at_price && product.compare_at_price > product.price && (
+              <span className="text-xs md:text-sm text-gray-500 line-through">
+                {formatPrice(product.compare_at_price)}
+              </span>
+            )}
+          </div>
         </div>
 
         <button
@@ -211,7 +213,7 @@ function ProductCardSimple({ product }: { product: ProductWithCategory & { image
             setTimeout(() => setIsAdded(false), 2000);
           }}
           disabled={product.stock === 0}
-          className={`w-full mt-3 font-bold py-2 px-3 rounded transition-all duration-200 text-sm ${
+          className={`w-full mt-1 font-bold py-2 px-3 rounded transition-all duration-200 text-sm ${
             isAdded
               ? 'bg-success text-white'
               : product.stock > 0

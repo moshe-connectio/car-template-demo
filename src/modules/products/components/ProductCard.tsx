@@ -126,74 +126,76 @@ export function ProductCard({ product, images = [] }: ProductCardProps) {
       </div>
 
       {/* Content */}
-      <div className="p-3 md:p-4">
-        {/* Category */}
-        {product.category && (
-          <p className="text-[11px] md:text-xs text-gray-500 mb-1">
-            {product.category.name}
-          </p>
-        )}
-
-        {/* Product Name */}
-        <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2 group-hover:text-primary transition-colors text-sm md:text-base">
-          {product.name}
-        </h3>
-
-        {/* Short Description */}
-        {product.short_description && (
-          <p className="text-xs md:text-sm text-gray-600 mb-2 md:mb-3 line-clamp-2">
-            {product.short_description}
-          </p>
-        )}
-
-        {/* Price */}
-        <div className="flex items-center gap-1.5 md:gap-2">
-          <span className="text-base md:text-lg font-bold text-gray-900">
-            {formatPrice(product.price)}
-          </span>
-          {hasDiscount && (
-            <span className="text-xs md:text-sm text-gray-500 line-through">
-              {formatPrice(product.compare_at_price!)}
-            </span>
+      <div className="px-3 pt-3 pb-2 md:px-4 md:pt-4 md:pb-3 flex flex-col gap-1.5 md:gap-2">
+        <div className="flex flex-col gap-1 md:gap-1.5">
+          {/* Category */}
+          {product.category && (
+            <p className="text-[11px] md:text-xs text-gray-500 mb-1">
+              {product.category.name}
+            </p>
           )}
-        </div>
 
-        {/* Stock Status */}
-        {product.stock > 0 && product.stock < 10 && (
-          <p className="text-[11px] md:text-xs text-warning mt-2">
-            נותרו {product.stock} במלאי
-          </p>
-        )}
+          {/* Product Name */}
+          <h3 className="font-semibold text-gray-900 mb-1.5 line-clamp-2 group-hover:text-primary transition-colors text-sm md:text-base">
+            {product.name}
+          </h3>
 
-        {/* Quantity Selector */}
-        <div className="flex items-center gap-2 mt-3 mb-3">
-          <button
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              setQuantity(Math.max(1, quantity - 1));
-            }}
-            disabled={quantity === 1}
-            className="px-2 py-1 bg-gray-200 hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed rounded text-sm font-bold transition-colors"
-            aria-label="הקטן כמות"
-          >
-            −
-          </button>
-          <span className="px-3 py-1 font-bold text-center flex-1 bg-gray-50 rounded text-sm md:text-base">
-            {quantity}
-          </span>
-          <button
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              setQuantity(Math.min(product.stock, quantity + 1));
-            }}
-            disabled={quantity >= product.stock}
-            className="px-2 py-1 bg-gray-200 hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed rounded text-sm font-bold transition-colors"
-            aria-label="הגדל כמות"
-          >
-            +
-          </button>
+          {/* Short Description */}
+          {product.short_description && (
+            <p className="text-xs md:text-sm text-gray-600 mb-1.5 md:mb-2 line-clamp-2">
+              {product.short_description}
+            </p>
+          )}
+
+          {/* Price */}
+          <div className="flex items-center gap-1.5 md:gap-2">
+            <span className="text-base md:text-lg font-bold text-gray-900">
+              {formatPrice(product.price)}
+            </span>
+            {hasDiscount && (
+              <span className="text-xs md:text-sm text-gray-500 line-through">
+                {formatPrice(product.compare_at_price!)}
+              </span>
+            )}
+          </div>
+
+          {/* Stock Status */}
+          {product.stock > 0 && product.stock < 10 && (
+            <p className="text-[11px] md:text-xs text-warning">
+              נותרו {product.stock} במלאי
+            </p>
+          )}
+
+          {/* Quantity Selector */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setQuantity(Math.max(1, quantity - 1));
+              }}
+              disabled={quantity === 1}
+              className="px-2 py-1 bg-gray-200 hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed rounded text-sm font-bold transition-colors"
+              aria-label="הקטן כמות"
+            >
+              −
+            </button>
+            <span className="px-3 py-1 font-bold text-center flex-1 bg-gray-50 rounded text-sm md:text-base">
+              {quantity}
+            </span>
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setQuantity(Math.min(product.stock, quantity + 1));
+              }}
+              disabled={quantity >= product.stock}
+              className="px-2 py-1 bg-gray-200 hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed rounded text-sm font-bold transition-colors"
+              aria-label="הגדל כמות"
+            >
+              +
+            </button>
+          </div>
         </div>
 
         {/* Add to Cart Button */}
@@ -214,7 +216,7 @@ export function ProductCard({ product, images = [] }: ProductCardProps) {
             setTimeout(() => setIsAdded(false), 2000);
           }}
           disabled={product.stock === 0}
-          className={`w-full mt-4 font-bold py-2 px-3 rounded transition-all duration-200 text-sm ${
+          className={`w-full mt-1 font-bold py-2 px-3 rounded transition-all duration-200 text-sm ${
             isAdded
               ? 'bg-success text-white'
               : product.stock > 0
