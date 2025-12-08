@@ -126,33 +126,33 @@ export function ProductCard({ product, images = [] }: ProductCardProps) {
       </div>
 
       {/* Content */}
-      <div className="p-4">
+      <div className="p-3 md:p-4">
         {/* Category */}
         {product.category && (
-          <p className="text-xs text-gray-500 mb-1">
+          <p className="text-[11px] md:text-xs text-gray-500 mb-1">
             {product.category.name}
           </p>
         )}
 
         {/* Product Name */}
-        <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2 group-hover:text-primary transition-colors">
+        <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2 group-hover:text-primary transition-colors text-sm md:text-base">
           {product.name}
         </h3>
 
         {/* Short Description */}
         {product.short_description && (
-          <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+          <p className="text-xs md:text-sm text-gray-600 mb-2 md:mb-3 line-clamp-2">
             {product.short_description}
           </p>
         )}
 
         {/* Price */}
-        <div className="flex items-center gap-2">
-          <span className="text-lg font-bold text-gray-900">
+        <div className="flex items-center gap-1.5 md:gap-2">
+          <span className="text-base md:text-lg font-bold text-gray-900">
             {formatPrice(product.price)}
           </span>
           {hasDiscount && (
-            <span className="text-sm text-gray-500 line-through">
+            <span className="text-xs md:text-sm text-gray-500 line-through">
               {formatPrice(product.compare_at_price!)}
             </span>
           )}
@@ -160,7 +160,7 @@ export function ProductCard({ product, images = [] }: ProductCardProps) {
 
         {/* Stock Status */}
         {product.stock > 0 && product.stock < 10 && (
-          <p className="text-xs text-warning mt-2">
+          <p className="text-[11px] md:text-xs text-warning mt-2">
             נותרו {product.stock} במלאי
           </p>
         )}
@@ -179,7 +179,7 @@ export function ProductCard({ product, images = [] }: ProductCardProps) {
           >
             −
           </button>
-          <span className="px-3 py-1 font-bold text-center flex-1 bg-gray-50 rounded">
+          <span className="px-3 py-1 font-bold text-center flex-1 bg-gray-50 rounded text-sm md:text-base">
             {quantity}
           </span>
           <button

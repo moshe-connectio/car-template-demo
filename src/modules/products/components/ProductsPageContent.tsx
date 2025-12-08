@@ -119,7 +119,7 @@ export function ProductsPageContent({ initialProducts = [], allCategories = [] }
 
       {/* Products Grid */}
       {filteredProducts.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4 lg:gap-6">
           {filteredProducts.map((product) => (
             <ProductCardSimple key={product.id} product={product} />
           ))}
@@ -173,25 +173,25 @@ function ProductCardSimple({ product }: { product: ProductWithCategory & { image
       </Link>
 
       {/* Content */}
-      <div className="p-4">
+      <div className="p-3 md:p-4">
         <Link href={`/products/${product.slug}`}>
-          <h3 className="font-semibold text-gray-900 mb-1 line-clamp-2 group-hover:text-primary transition-colors">
+          <h3 className="font-semibold text-gray-900 mb-1 line-clamp-2 group-hover:text-primary transition-colors text-sm md:text-base">
             {product.name}
           </h3>
         </Link>
 
         {product.short_description && (
-          <p className="text-sm text-gray-600 mb-3 line-clamp-1">
+          <p className="text-xs md:text-sm text-gray-600 mb-2 md:mb-3 line-clamp-1">
             {product.short_description}
           </p>
         )}
 
-        <div className="flex items-center gap-2 mb-3">
-          <span className="text-lg font-bold text-gray-900">
+        <div className="flex items-center gap-1.5 md:gap-2 mb-2 md:mb-3">
+          <span className="text-base md:text-lg font-bold text-gray-900">
             {formatPrice(product.price)}
           </span>
           {product.compare_at_price && product.compare_at_price > product.price && (
-            <span className="text-sm text-gray-500 line-through">
+            <span className="text-xs md:text-sm text-gray-500 line-through">
               {formatPrice(product.compare_at_price)}
             </span>
           )}
