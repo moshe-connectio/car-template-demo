@@ -58,6 +58,13 @@ export function Header() {
               <span className="absolute bottom-0 right-0 w-0 h-0.5 bg-primary group-hover:w-full transition-all duration-300"></span>
             </Link>
             <Link 
+              href="/new-vehicles" 
+              className="text-gray-700 hover:text-primary font-medium transition-all duration-200 text-xs sm:text-sm relative group"
+            >
+              רכבים חדשים
+              <span className="absolute bottom-0 right-0 w-0 h-0.5 bg-primary group-hover:w-full transition-all duration-300"></span>
+            </Link>
+            <Link 
               href={ROUTES.products} 
               className="text-gray-700 hover:text-primary font-medium transition-all duration-200 text-xs sm:text-sm relative group"
             >

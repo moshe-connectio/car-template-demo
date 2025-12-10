@@ -30,6 +30,11 @@ export function Footer() {
                   רכבים למכירה
                 </a>
               </li>
+              <li>
+                <a href="/new-vehicles" className="hover:text-footer-heading transition-colors">
+                  רכבים חדשים
+                </a>
+              </li>
             </ul>
           </div>
 
