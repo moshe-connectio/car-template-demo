@@ -23,6 +23,26 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'images.unsplash.com',
       },
+      {
+        protocol: 'https',
+        hostname: 'example.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'www.bmw.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'www.mercedes-benz.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'www.audi.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'www.tesla.com',
+      },
     ],
   },
 };
